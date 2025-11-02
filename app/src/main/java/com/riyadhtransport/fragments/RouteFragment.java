@@ -29,6 +29,9 @@ import com.riyadhtransport.api.ApiClient;
 import com.riyadhtransport.models.Route;
 import com.riyadhtransport.models.RouteSegment;
 import com.riyadhtransport.utils.LocationHelper;
+import com.riyadhtransport.utils.JourneyTimeCalculator;
+import android.os.Handler;
+import android.os.Looper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;
@@ -46,6 +49,9 @@ import android.graphics.Paint;
 
 public class RouteFragment extends Fragment {
     
+    private static final String TAG = "RouteFragment";
+    private static final long REFRESH_INTERVAL_MS = 60000; // 60 seconds
+    
     private AutoCompleteTextView startInput;
     private AutoCompleteTextView endInput;
     private Button findRouteButton;
@@ -61,6 +67,10 @@ public class RouteFragment extends Fragment {
     private String startName = "", endName = "";
     private List<Station> allStations = new ArrayList<>();
     private Map<String, Station> stationMap = new HashMap<>();
+    
+    private Route currentRoute;
+    private Handler refreshHandler;
+    private Runnable refreshRunnable;
     
     @Nullable
     @Override
@@ -285,17 +295,64 @@ public class RouteFragment extends Fragment {
             Route routeObj = gson.fromJson(json, Route.class);
 
             if (routeObj != null && routeObj.getSegments() != null) {
+                currentRoute = routeObj;
                 segmentAdapter.setSegments(routeObj.getSegments());
                 routeDetailsContainer.setVisibility(View.VISIBLE);
 
                 // Draw route on map
                 drawRouteOnMap(routeObj);
+                
+                // Start live arrival updates
+                setupAutoRefresh();
             }
         } catch (Exception e) {
             Toast.makeText(requireContext(),
                     getString(R.string.error) + ": " + e.getMessage(),
                     Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    private void setupAutoRefresh() {
+        // Stop any existing refresh
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
+        
+        refreshHandler = new Handler(Looper.getMainLooper());
+        refreshRunnable = new Runnable() {
+            @Override
+            public void run() {
+                refreshLiveData();
+                refreshHandler.postDelayed(this, REFRESH_INTERVAL_MS);
+            }
+        };
+        
+        // Start the first refresh immediately
+        refreshLiveData();
+    }
+    
+    private void refreshLiveData() {
+        if (currentRoute == null) return;
+        
+        android.util.Log.d(TAG, "Refreshing live arrival data...");
+        
+        JourneyTimeCalculator.calculateLiveJourneyTime(currentRoute, 
+            new JourneyTimeCalculator.CalculationCallback() {
+                @Override
+                public void onComplete(int newTotalMinutes) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            android.util.Log.d(TAG, "Journey time updated: " + newTotalMinutes + " minutes");
+                            segmentAdapter.notifyDataSetChanged();
+                        });
+                    }
+                }
+                
+                @Override
+                public void onError(String message) {
+                    android.util.Log.e(TAG, "Error calculating journey time: " + message);
+                }
+            });
     }
     private void drawRouteOnMap(Route route) {
         if (getActivity() == null || !(getActivity() instanceof MainActivity)) {
@@ -485,5 +542,29 @@ public class RouteFragment extends Fragment {
         endLat = latitude;
         endLng = longitude;
         endName = locationText;
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (refreshHandler != null && refreshRunnable != null && currentRoute != null) {
+            refreshHandler.post(refreshRunnable);
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
     }
 }

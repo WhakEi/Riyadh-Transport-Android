@@ -10,6 +10,10 @@ public class Line {
     private String color;
     private List<String> directions;
     private Map<String, List<String>> stationsByDirection;
+    
+    // Live arrival data (not serialized, runtime only)
+    private transient List<Integer> upcomingArrivals;
+    private transient String arrivalStatus; // "checking", "live", "hidden", "normal"
 
     public Line() {}
 
@@ -46,5 +50,16 @@ public class Line {
 
     public boolean isBus() {
         return "bus".equalsIgnoreCase(type);
+    }
+    
+    // Live arrival getters and setters
+    public List<Integer> getUpcomingArrivals() { return upcomingArrivals; }
+    public void setUpcomingArrivals(List<Integer> upcomingArrivals) { 
+        this.upcomingArrivals = upcomingArrivals; 
+    }
+    
+    public String getArrivalStatus() { return arrivalStatus; }
+    public void setArrivalStatus(String arrivalStatus) { 
+        this.arrivalStatus = arrivalStatus; 
     }
 }
