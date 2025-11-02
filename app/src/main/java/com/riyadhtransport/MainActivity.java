@@ -148,13 +148,20 @@ public class MainActivity extends AppCompatActivity {
     private void setupMap() {
         // Get current language
         String language = getCurrentLanguage();
+        
+        // Check if dark mode is enabled
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        
+        // Use dark map style if dark mode is enabled
+        String mapStyle = isDarkMode ? "streets-v2-dark" : "streets-v2";
 
-        // Create MapTiler tile source with language support
+        // Create MapTiler tile source with language and dark mode support
         OnlineTileSourceBase mapTilerSource = new XYTileSource(
                 "MapTiler",
                 0, 20, 256, ".png",
                 new String[]{
-                    "https://api.maptiler.com/maps/streets-v2/256/"
+                    "https://api.maptiler.com/maps/" + mapStyle + "/256/"
                 },
                 "© MapTiler © OpenStreetMap contributors",
                 new org.osmdroid.tileprovider.tilesource.TileSourcePolicy(
