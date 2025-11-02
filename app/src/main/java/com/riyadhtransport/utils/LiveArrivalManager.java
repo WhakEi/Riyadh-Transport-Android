@@ -304,8 +304,14 @@ public class LiveArrivalManager {
     public static Arrival findValidArrival(List<Arrival> arrivals, String line, 
                                            String destination, int cumulativeTravelMinutes) {
         if (arrivals == null || arrivals.isEmpty()) {
+            Log.d(TAG, "findValidArrival: No arrivals provided");
             return null;
         }
+        
+        Log.d(TAG, "findValidArrival: Checking " + arrivals.size() + " arrivals, line=" + line + 
+              ", destination=" + destination + ", cumulativeTime=" + cumulativeTravelMinutes);
+        
+        Arrival fallbackArrival = null;
         
         for (Arrival arrival : arrivals) {
             // Check if arrival matches line and destination
@@ -323,11 +329,29 @@ public class LiveArrivalManager {
             int waitTime = arrival.getMinutesUntil() - cumulativeTravelMinutes;
             boolean reasonableWait = waitTime <= MAX_WAIT_MINUTES;
             
+            Log.d(TAG, "  Arrival: line=" + arrival.getLine() + ", dest=" + arrival.getDestination() + 
+                  ", minutesUntil=" + arrival.getMinutesUntil() + 
+                  " | lineMatches=" + lineMatches + ", destMatches=" + destMatches + 
+                  ", canCatch=" + canCatch + ", reasonableWait=" + reasonableWait);
+            
+            // Store first catchable arrival with matching line as fallback
+            if (lineMatches && canCatch && reasonableWait && fallbackArrival == null) {
+                fallbackArrival = arrival;
+            }
+            
             if (lineMatches && destMatches && canCatch && reasonableWait) {
+                Log.d(TAG, "  -> Valid arrival found with matching destination!");
                 return arrival;
             }
         }
         
+        // If no perfect match, use fallback (matching line but not destination)
+        if (fallbackArrival != null) {
+            Log.d(TAG, "  -> Using fallback arrival (line matches but destination may not)");
+            return fallbackArrival;
+        }
+        
+        Log.d(TAG, "findValidArrival: No valid arrival found");
         return null;
     }
 }

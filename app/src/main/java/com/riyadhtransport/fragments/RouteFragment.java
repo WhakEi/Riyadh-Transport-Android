@@ -355,7 +355,11 @@ public class RouteFragment extends Fragment {
             });
     }
     private void drawRouteOnMap(Route route) {
+        android.util.Log.d(TAG, "drawRouteOnMap: Starting to draw route with " + 
+            (route != null && route.getSegments() != null ? route.getSegments().size() : 0) + " segments");
+        
         if (getActivity() == null || !(getActivity() instanceof MainActivity)) {
+            android.util.Log.w(TAG, "drawRouteOnMap: Activity is null or not MainActivity");
             return;
         }
 
@@ -363,9 +367,12 @@ public class RouteFragment extends Fragment {
         MapView mapView = mainActivity.getMapView();
 
         if (mapView == null) {
+            android.util.Log.w(TAG, "drawRouteOnMap: MapView is null");
             return;
         }
 
+        android.util.Log.d(TAG, "drawRouteOnMap: MapView found, clearing existing overlays");
+        
         // Clear existing route overlays (keep location overlay)
         mapView.getOverlays().removeIf(overlay -> overlay instanceof Polyline);
 
@@ -408,17 +415,23 @@ public class RouteFragment extends Fragment {
             }
 
             if (!points.isEmpty()) {
+                android.util.Log.d(TAG, "drawRouteOnMap: Adding polyline with " + points.size() + " points for segment type: " + segment.getType());
                 line.setPoints(points);
                 mapView.getOverlays().add(line);
+            } else {
+                android.util.Log.w(TAG, "drawRouteOnMap: No points for segment type: " + segment.getType());
             }
         }
 
+        android.util.Log.d(TAG, "drawRouteOnMap: Total overlays on map: " + mapView.getOverlays().size());
         mapView.invalidate();
 
         // Zoom to show the entire route
         if (!route.getSegments().isEmpty()) {
             zoomToRoute(mapView, route);
         }
+        
+        android.util.Log.d(TAG, "drawRouteOnMap: Complete");
     }
 
     private void addSegmentPoints(RouteSegment segment, List<GeoPoint> points) {
