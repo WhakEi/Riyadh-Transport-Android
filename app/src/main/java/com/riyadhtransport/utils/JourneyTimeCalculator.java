@@ -86,7 +86,7 @@ public class JourneyTimeCalculator {
             // Get station name
             String stationName = null;
             if (segment.getStations() != null && !segment.getStations().isEmpty()) {
-                stationName = segment.getStations().get(0);
+                stationName = cleanStationName(segment.getStations().get(0));
             }
             
             if (stationName == null || stationName.isEmpty()) {
@@ -99,7 +99,7 @@ public class JourneyTimeCalculator {
             // Get destination station for matching
             String destinationStation = null;
             if (segment.getStations() != null && segment.getStations().size() > 1) {
-                destinationStation = segment.getStations().get(segment.getStations().size() - 1);
+                destinationStation = cleanStationName(segment.getStations().get(segment.getStations().size() - 1));
             }
             
             int currentCumulativeTime = cumulativeTravelTime.get();
@@ -202,5 +202,25 @@ public class JourneyTimeCalculator {
         newTotalJourneyTime.addAndGet(segmentRideMinutes);
         
         onComplete.run();
+    }
+    
+    /**
+     * Clean station name by removing type suffixes like "(Bus)" or "(Metro)"
+     */
+    private static String cleanStationName(String stationName) {
+        if (stationName == null) {
+            return null;
+        }
+        
+        // Remove common suffixes
+        stationName = stationName.trim();
+        if (stationName.endsWith(" (Bus)")) {
+            return stationName.substring(0, stationName.length() - 6).trim();
+        }
+        if (stationName.endsWith(" (Metro)")) {
+            return stationName.substring(0, stationName.length() - 8).trim();
+        }
+        
+        return stationName;
     }
 }
