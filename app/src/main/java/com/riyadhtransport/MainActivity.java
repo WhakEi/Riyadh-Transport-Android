@@ -374,23 +374,21 @@ public class MainActivity extends AppCompatActivity {
             Locale locale = new Locale(languageCode);
             Locale.setDefault(locale);
 
-            Resources resources = getResources();
-            Configuration config = new Configuration(resources.getConfiguration());
+            // Update both activity AND application context resources
+            Configuration config = new Configuration();
+            config.setLocale(locale);
             
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                config.setLocale(locale);
-            } else {
-                config.locale = locale;
-            }
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
-                getApplicationContext().createConfigurationContext(config);
-            }
-            resources.updateConfiguration(config, resources.getDisplayMetrics());
+            // Update activity resources
+            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+            
+            // Update application context resources (critical for ApiClient)
+            getApplicationContext().getResources().updateConfiguration(config, 
+                getApplicationContext().getResources().getDisplayMetrics());
             
             android.util.Log.i("RiyadhTransport", "Applied locale: " + locale);
             android.util.Log.i("RiyadhTransport", "Locale.getDefault(): " + Locale.getDefault());
-            android.util.Log.i("RiyadhTransport", "Config locale: " + config.getLocales().get(0));
+            android.util.Log.i("RiyadhTransport", "Activity context locale: " + getResources().getConfiguration().getLocales().get(0));
+            android.util.Log.i("RiyadhTransport", "App context locale: " + getApplicationContext().getResources().getConfiguration().getLocales().get(0));
         }
     }
     
@@ -399,24 +397,21 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         prefs.edit().putString("language", languageCode).apply();
         
-        android.util.Log.d("MainActivity", "changeLanguage: languageCode=" + languageCode);
+        android.util.Log.i("RiyadhTransport", "changeLanguage: " + languageCode);
         
         Locale locale = new Locale(languageCode);
         Locale.setDefault(locale);
 
-        Resources resources = getResources();
-        Configuration config = new Configuration(resources.getConfiguration());
+        // Update both activity AND application context resources
+        Configuration config = new Configuration();
+        config.setLocale(locale);
         
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            config.setLocale(locale);
-        } else {
-            config.locale = locale;
-        }
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
-            getApplicationContext().createConfigurationContext(config);
-        }
-        resources.updateConfiguration(config, resources.getDisplayMetrics());
+        // Update activity resources
+        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        
+        // Update application context resources (critical for ApiClient)
+        getApplicationContext().getResources().updateConfiguration(config, 
+            getApplicationContext().getResources().getDisplayMetrics());
 
         // Re-initialize API client to pick up language changes for /ar/ endpoints
         com.riyadhtransport.api.ApiClient.init(this);
