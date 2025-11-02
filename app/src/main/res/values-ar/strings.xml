@@ -98,12 +98,12 @@
 
     <!-- About -->
     <string name="about_app_text">السلام عليكم ولرحمة الله وبركاته.  أهلاً بكم في تطبيق RPTP للهاتف المحمول, تطبيق مفتوح المصدر يوفر معلومات شاملة عن النقل العام لأنظمة القطار والحافلات في الرياض. اعثر على المسارات، وشاهد المحطات القريبة، وتنقل في المدينة بسهولة.</string>
-    <string name="app_version">الإصدار 0.5.1</string>
+    <string name="app_version">الإصدار 0.5.2</string>
 
     <!-- Cache -->
     <string name="clear_cache">مسح ذاكرة التخزين المؤقت</string>
     <string name="cache_cleared">تم مسح ذاكرة التخزين المؤقت بنجاح</string>
-    
+
     <!-- Favorites -->
     <string name="favorites">المفضلة</string>
     <string name="add_to_favorites">إضافة إلى المفضلة</string>
