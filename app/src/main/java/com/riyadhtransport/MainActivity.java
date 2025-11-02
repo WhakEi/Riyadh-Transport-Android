@@ -367,7 +367,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         String languageCode = prefs.getString("language", null);
         
-        android.util.Log.d("MainActivity", "loadSavedLanguage: languageCode=" + languageCode);
+        android.util.Log.i("RiyadhTransport", "MainActivity.loadSavedLanguage() called");
+        android.util.Log.i("RiyadhTransport", "Saved language code: " + (languageCode != null ? languageCode : "NULL (using device default)"));
         
         if (languageCode != null) {
             Locale locale = new Locale(languageCode);
@@ -387,7 +388,9 @@ public class MainActivity extends AppCompatActivity {
             }
             resources.updateConfiguration(config, resources.getDisplayMetrics());
             
-            android.util.Log.d("MainActivity", "Applied locale: " + locale + ", Locale.getDefault()=" + Locale.getDefault());
+            android.util.Log.i("RiyadhTransport", "Applied locale: " + locale);
+            android.util.Log.i("RiyadhTransport", "Locale.getDefault(): " + Locale.getDefault());
+            android.util.Log.i("RiyadhTransport", "Config locale: " + config.getLocales().get(0));
         }
     }
     

@@ -27,7 +27,10 @@ public class LocaleHelper {
         }
         
         boolean isAr = locale.getLanguage().equals("ar");
-        android.util.Log.d("LocaleHelper", "isArabic check: locale=" + locale + ", language=" + locale.getLanguage() + ", result=" + isAr);
+        android.util.Log.i("RiyadhTransport", "LocaleHelper.isArabic() check:");
+        android.util.Log.i("RiyadhTransport", "  - locale: " + locale);
+        android.util.Log.i("RiyadhTransport", "  - language: " + locale.getLanguage());
+        android.util.Log.i("RiyadhTransport", "  - result: " + isAr);
         return isAr;
     }
 
