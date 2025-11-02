@@ -15,6 +15,7 @@ import com.riyadhtransport.models.RouteSegment;
 import com.riyadhtransport.utils.LineColorHelper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Calendar;
 
 public class RouteSegmentAdapter extends RecyclerView.Adapter<RouteSegmentAdapter.SegmentViewHolder> {
 
@@ -54,6 +55,15 @@ public class RouteSegmentAdapter extends RecyclerView.Adapter<RouteSegmentAdapte
         TextView segmentType;
         TextView segmentDuration;
         TextView segmentDetails;
+        ViewGroup arrivalTimesContainer;
+        ImageView arrivalIcon;
+        TextView arrivalTime1;
+        TextView arrivalTime2;
+        TextView arrivalTime3;
+        
+        private android.os.Handler animationHandler;
+        private Runnable animationRunnable;
+        private int currentAnimationFrame = 0;
 
         SegmentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -61,6 +71,19 @@ public class RouteSegmentAdapter extends RecyclerView.Adapter<RouteSegmentAdapte
             segmentType = itemView.findViewById(R.id.segment_type);
             segmentDuration = itemView.findViewById(R.id.segment_duration);
             segmentDetails = itemView.findViewById(R.id.segment_details);
+            arrivalTimesContainer = itemView.findViewById(R.id.arrival_times_container);
+            arrivalIcon = itemView.findViewById(R.id.arrival_icon);
+            arrivalTime1 = itemView.findViewById(R.id.arrival_time_1);
+            arrivalTime2 = itemView.findViewById(R.id.arrival_time_2);
+            arrivalTime3 = itemView.findViewById(R.id.arrival_time_3);
+            
+            animationHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        }
+        
+        void stopAnimation() {
+            if (animationRunnable != null) {
+                animationHandler.removeCallbacks(animationRunnable);
+            }
         }
 
         void bind(RouteSegment segment, boolean isLastSegment) {
@@ -127,6 +150,131 @@ public class RouteSegmentAdapter extends RecyclerView.Adapter<RouteSegmentAdapte
             // Set duration
             int minutes = (int) Math.ceil(segment.getDuration() / 60.0);
             segmentDuration.setText(minutes + " " + itemView.getContext().getString(R.string.minutes));
+            
+            // Handle live arrival times for transit segments
+            if (segment.isBus() || segment.isMetro()) {
+                updateLiveArrivals(segment);
+            } else {
+                stopAnimation();
+                arrivalTimesContainer.setVisibility(View.GONE);
+            }
+            
+            // Update segment type text if terminus is available
+            if (segment.getRefinedTerminus() != null && !segment.getRefinedTerminus().isEmpty()) {
+                String destination = getDestinationStation(segment);
+                if (segment.isBus()) {
+                    typeText = itemView.getContext().getString(R.string.take_bus_towards,
+                            segment.getLine(), segment.getRefinedTerminus(), destination);
+                } else if (segment.isMetro()) {
+                    String lineName = LineColorHelper.getMetroLineName(
+                            itemView.getContext(), segment.getLine());
+                    typeText = itemView.getContext().getString(R.string.take_metro_towards,
+                            lineName, segment.getRefinedTerminus(), destination);
+                }
+                segmentType.setText(typeText);
+            }
+        }
+        
+        private void updateLiveArrivals(RouteSegment segment) {
+            String status = segment.getArrivalStatus();
+            
+            if (status == null || "hidden".equals(status)) {
+                stopAnimation();
+                arrivalTimesContainer.setVisibility(View.GONE);
+                return;
+            }
+            
+            arrivalTimesContainer.setVisibility(View.VISIBLE);
+            
+            if ("checking".equals(status)) {
+                // Show checking status
+                stopAnimation();
+                arrivalIcon.setImageResource(R.drawable.ic_clock);
+                arrivalTime1.setText(itemView.getContext().getString(R.string.checking_live_data));
+                arrivalTime2.setVisibility(View.GONE);
+                arrivalTime3.setVisibility(View.GONE);
+                return;
+            }
+            
+            List<Integer> upcomingArrivals = segment.getUpcomingArrivals();
+            if (upcomingArrivals == null || upcomingArrivals.isEmpty()) {
+                stopAnimation();
+                arrivalTimesContainer.setVisibility(View.GONE);
+                return;
+            }
+            
+            if ("normal".equals(status)) {
+                // Show as normal time (>59 minutes) with clock icon, black text
+                stopAnimation();
+                arrivalIcon.setImageResource(R.drawable.ic_clock);
+                
+                // Format as time (e.g., "9:59 PM")
+                if (!upcomingArrivals.isEmpty()) {
+                    String timeText = formatAsTime(upcomingArrivals.get(0));
+                    arrivalTime1.setText(timeText);
+                    arrivalTime1.setTextColor(0xFF000000); // Black
+                    arrivalTime1.setVisibility(View.VISIBLE);
+                }
+                arrivalTime2.setVisibility(View.GONE);
+                arrivalTime3.setVisibility(View.GONE);
+                
+            } else if ("live".equals(status)) {
+                // Show live arrivals with animation
+                startLiveAnimation();
+                
+                // Display up to 3 arrival times
+                for (int i = 0; i < upcomingArrivals.size() && i < 3; i++) {
+                    int minutes = upcomingArrivals.get(i);
+                    String timeText;
+                    
+                    if (minutes == 0) {
+                        timeText = itemView.getContext().getString(R.string.arriving_now);
+                    } else {
+                        timeText = itemView.getContext().getString(R.string.arriving_in_minutes, minutes);
+                    }
+                    
+                    TextView timeView = i == 0 ? arrivalTime1 : (i == 1 ? arrivalTime2 : arrivalTime3);
+                    timeView.setText(timeText);
+                    timeView.setTextColor(0xFF4CAF50); // Green
+                    timeView.setVisibility(View.VISIBLE);
+                }
+                
+                // Hide unused time views
+                if (upcomingArrivals.size() < 2) arrivalTime2.setVisibility(View.GONE);
+                if (upcomingArrivals.size() < 3) arrivalTime3.setVisibility(View.GONE);
+            }
+        }
+        
+        private void startLiveAnimation() {
+            stopAnimation();
+            
+            // Determine if RTL (Arabic)
+            boolean isRtl = itemView.getContext().getResources().getConfiguration()
+                    .getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+            
+            final int[] frames = isRtl ? 
+                new int[]{R.drawable.lr3, R.drawable.lr2, R.drawable.lr1} :
+                new int[]{R.drawable.lt3, R.drawable.lt2, R.drawable.lt1};
+            
+            animationRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    arrivalIcon.setImageResource(frames[currentAnimationFrame]);
+                    currentAnimationFrame = (currentAnimationFrame + 1) % 3;
+                    animationHandler.postDelayed(this, 500); // 0.5 seconds
+                }
+            };
+            
+            animationHandler.post(animationRunnable);
+        }
+        
+        private String formatAsTime(int minutesFromNow) {
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.add(java.util.Calendar.MINUTE, minutesFromNow);
+            
+            java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("h:mm a", 
+                    java.util.Locale.getDefault());
+            return timeFormat.format(cal.getTime());
         }
 
         private String getDestinationName(RouteSegment segment, boolean isLastSegment) {

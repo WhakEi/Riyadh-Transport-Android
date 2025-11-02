@@ -25,6 +25,13 @@ public class RouteSegment {
     @SerializedName("to")
     private Object to; // Can be String or coordinate object
     
+    // Live arrival data fields (not serialized, only used at runtime)
+    private transient Integer waitMinutes;
+    private transient String arrivalStatus; // "checking", "live", "hidden", "normal"
+    private transient String refinedTerminus;
+    private transient Integer nextArrivalMinutes;
+    private transient List<Integer> upcomingArrivals;
+    
     public RouteSegment() {
     }
     
@@ -98,5 +105,46 @@ public class RouteSegment {
     
     public int getStopCount() {
         return stations != null ? stations.size() : 0;
+    }
+    
+    // Live arrival data getters and setters
+    public Integer getWaitMinutes() {
+        return waitMinutes;
+    }
+    
+    public void setWaitMinutes(Integer waitMinutes) {
+        this.waitMinutes = waitMinutes;
+    }
+    
+    public String getArrivalStatus() {
+        return arrivalStatus;
+    }
+    
+    public void setArrivalStatus(String arrivalStatus) {
+        this.arrivalStatus = arrivalStatus;
+    }
+    
+    public String getRefinedTerminus() {
+        return refinedTerminus;
+    }
+    
+    public void setRefinedTerminus(String refinedTerminus) {
+        this.refinedTerminus = refinedTerminus;
+    }
+    
+    public Integer getNextArrivalMinutes() {
+        return nextArrivalMinutes;
+    }
+    
+    public void setNextArrivalMinutes(Integer nextArrivalMinutes) {
+        this.nextArrivalMinutes = nextArrivalMinutes;
+    }
+    
+    public List<Integer> getUpcomingArrivals() {
+        return upcomingArrivals;
+    }
+    
+    public void setUpcomingArrivals(List<Integer> upcomingArrivals) {
+        this.upcomingArrivals = upcomingArrivals;
     }
 }

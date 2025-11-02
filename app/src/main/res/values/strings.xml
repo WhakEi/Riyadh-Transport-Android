@@ -139,4 +139,13 @@
     <string name="error_location_default">Unable to get location. Using default.</string>
     <string name="info_line_details_loaded">Line details loaded</string>
     <string name="info_arrivals_loaded">Arrivals loaded</string>
+    
+    <!-- Live Arrivals -->
+    <string name="checking_live_data">Checking...</string>
+    <string name="arriving_now">Arriving now</string>
+    <string name="arriving_in_minutes">%d min</string>
+    <string name="arriving_at_time">%s</string>
+    <string name="towards">towards %s</string>
+    <string name="take_bus_towards">Take Bus %1$s towards %2$s and disembark at %3$s</string>
+    <string name="take_metro_towards">Take the %1$s towards %2$s and disembark at %3$s</string>
 </resources>

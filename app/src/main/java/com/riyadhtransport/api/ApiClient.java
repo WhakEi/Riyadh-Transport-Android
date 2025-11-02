@@ -15,11 +15,14 @@ public class ApiClient {
     // For production, use your actual server URL
     private static final String BASE_URL = "http://mainserver.inirl.net:5000/";
     private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/";
+    private static final String RPT_BASE_URL = "https://rpt.sa/";
     
     private static Retrofit retrofit = null;
     private static Retrofit nominatimRetrofit = null;
+    private static Retrofit rptRetrofit = null;
     private static TransportApiService apiService = null;
     private static NominatimService nominatimService = null;
+    private static RptStationService rptStationService = null;
     private static Context appContext = null;
 
     public static void init(Context context) {
@@ -144,5 +147,43 @@ public class ApiClient {
         retrofit = null;
         apiService = null;
         // Will be recreated with new URL on next call
+    }
+    
+    private static Retrofit getRptClient() {
+        if (rptRetrofit == null) {
+            // Create OkHttpClient with timeout settings
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .addInterceptor(chain -> {
+                        // Add required headers for RPT.sa
+                        return chain.proceed(
+                                chain.request()
+                                        .newBuilder()
+                                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36")
+                                        .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                                        .header("Accept-Language", "en-US,en;q=0.9")
+                                        .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                                        .header("X-Requested-With", "XMLHttpRequest")
+                                        .build()
+                        );
+                    })
+                    .build();
+
+            // Create Retrofit instance for RPT
+            rptRetrofit = new Retrofit.Builder()
+                    .baseUrl(RPT_BASE_URL)
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return rptRetrofit;
+    }
+    
+    public static RptStationService getRptStationService() {
+        if (rptStationService == null) {
+            rptStationService = getRptClient().create(RptStationService.class);
+        }
+        return rptStationService;
     }
 }

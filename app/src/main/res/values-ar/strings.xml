@@ -139,4 +139,13 @@
     <string name="error_location_default">غير قادر على الحصول على الموقع. استخدام الافتراضي.</string>
     <string name="info_line_details_loaded">تم تحميل تفاصيل الخط</string>
     <string name="info_arrivals_loaded">تم تحميل المواعيد</string>
+    
+    <!-- Live Arrivals -->
+    <string name="checking_live_data">جاري التحقق...</string>
+    <string name="arriving_now">وصول الآن</string>
+    <string name="arriving_in_minutes">%d د</string>
+    <string name="arriving_at_time">%s</string>
+    <string name="towards">باتجاه %s</string>
+    <string name="take_bus_towards">اركب الحافلة %1$s باتجاه %2$s وانزل في %3$s</string>
+    <string name="take_metro_towards">اركب %1$s باتجاه %2$s وانزل في %3$s</string>
 </resources>

@@ -44,6 +44,50 @@
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
+        
+        <!-- Live Arrival Times (hidden by default) -->
+        <LinearLayout
+            android:id="@+id/arrival_times_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="end|center_vertical"
+            android:visibility="gone">
+            
+            <ImageView
+                android:id="@+id/arrival_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@string/arrivals" />
+            
+            <TextView
+                android:id="@+id/arrival_time_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textSize="13sp"
+                android:textColor="#4CAF50"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:id="@+id/arrival_time_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textSize="13sp"
+                android:textColor="#4CAF50"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:id="@+id/arrival_time_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="#4CAF50"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <!-- Segment Details -->
         <TextView
