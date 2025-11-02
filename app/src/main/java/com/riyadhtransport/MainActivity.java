@@ -367,14 +367,27 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         String languageCode = prefs.getString("language", null);
         
+        android.util.Log.d("MainActivity", "loadSavedLanguage: languageCode=" + languageCode);
+        
         if (languageCode != null) {
             Locale locale = new Locale(languageCode);
             Locale.setDefault(locale);
 
-            Configuration config = new Configuration();
-            config.setLocale(locale);
+            Resources resources = getResources();
+            Configuration config = new Configuration(resources.getConfiguration());
+            
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                config.setLocale(locale);
+            } else {
+                config.locale = locale;
+            }
 
-            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
+                getApplicationContext().createConfigurationContext(config);
+            }
+            resources.updateConfiguration(config, resources.getDisplayMetrics());
+            
+            android.util.Log.d("MainActivity", "Applied locale: " + locale + ", Locale.getDefault()=" + Locale.getDefault());
         }
     }
     
@@ -383,13 +396,24 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         prefs.edit().putString("language", languageCode).apply();
         
+        android.util.Log.d("MainActivity", "changeLanguage: languageCode=" + languageCode);
+        
         Locale locale = new Locale(languageCode);
         Locale.setDefault(locale);
 
-        Configuration config = new Configuration();
-        config.setLocale(locale);
+        Resources resources = getResources();
+        Configuration config = new Configuration(resources.getConfiguration());
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            config.setLocale(locale);
+        } else {
+            config.locale = locale;
+        }
 
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
+            getApplicationContext().createConfigurationContext(config);
+        }
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
 
         // Re-initialize API client to pick up language changes for /ar/ endpoints
         com.riyadhtransport.api.ApiClient.init(this);

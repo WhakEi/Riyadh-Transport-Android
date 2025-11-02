@@ -24,6 +24,10 @@ public class ApiClient {
 
     public static void init(Context context) {
         appContext = context.getApplicationContext();
+        android.util.Log.d("ApiClient", "init called, appContext=" + appContext);
+        if (appContext != null) {
+            android.util.Log.d("ApiClient", "Context locale check: isArabic=" + LocaleHelper.isArabic(appContext));
+        }
     }
     
     public static Retrofit getClient() {
@@ -35,22 +39,34 @@ public class ApiClient {
             // Create OkHttpClient with timeout settings and Arabic locale interceptor
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(chain -> {
+                        String url = chain.request().url().toString();
+                        android.util.Log.d("ApiClient", "Interceptor: Original URL=" + url);
+                        android.util.Log.d("ApiClient", "Interceptor: appContext=" + appContext);
+                        
                         // Add /ar/ prefix to endpoints when app is in Arabic
-                        if (appContext != null && LocaleHelper.isArabic(appContext)) {
-                            String url = chain.request().url().toString();
-                            // Only modify if it's our backend and doesn't already have /ar/
-                            if (url.startsWith(BASE_URL) && !url.contains("/ar/")) {
-                                String path = url.substring(BASE_URL.length());
-                                String newUrl = BASE_URL + "ar/" + path;
-                                android.util.Log.d("ApiClient", "Arabic mode: Rewriting URL from " + url + " to " + newUrl);
-                                return chain.proceed(
-                                        chain.request().newBuilder()
-                                                .url(newUrl)
-                                                .build()
-                                );
+                        if (appContext != null) {
+                            boolean isArabic = LocaleHelper.isArabic(appContext);
+                            android.util.Log.d("ApiClient", "Interceptor: isArabic=" + isArabic);
+                            
+                            if (isArabic) {
+                                // Only modify if it's our backend and doesn't already have /ar/
+                                if (url.startsWith(BASE_URL) && !url.contains("/ar/")) {
+                                    String path = url.substring(BASE_URL.length());
+                                    String newUrl = BASE_URL + "ar/" + path;
+                                    android.util.Log.d("ApiClient", "Arabic mode: Rewriting URL from " + url + " to " + newUrl);
+                                    return chain.proceed(
+                                            chain.request().newBuilder()
+                                                    .url(newUrl)
+                                                    .build()
+                                    );
+                                } else if (url.contains("/ar/")) {
+                                    android.util.Log.d("ApiClient", "Arabic mode: URL already contains /ar/, not rewriting");
+                                }
+                            } else {
+                                android.util.Log.d("ApiClient", "English mode: Not rewriting URL");
                             }
                         } else {
-                            android.util.Log.d("ApiClient", "English mode or null context, appContext=" + appContext);
+                            android.util.Log.e("ApiClient", "Interceptor: appContext is NULL! Cannot determine locale.");
                         }
                         return chain.proceed(chain.request());
                     })
@@ -72,6 +88,10 @@ public class ApiClient {
     
     public static TransportApiService getApiService() {
         // Always recreate the client to ensure locale changes are picked up
+        android.util.Log.d("ApiClient", "getApiService called, appContext=" + appContext);
+        if (appContext != null) {
+            android.util.Log.d("ApiClient", "getApiService: isArabic=" + LocaleHelper.isArabic(appContext));
+        }
         retrofit = null;
         apiService = null;
         apiService = getClient().create(TransportApiService.class);
