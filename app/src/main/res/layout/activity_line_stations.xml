@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/background">
 
     <!-- Line Title -->
     <TextView
@@ -13,6 +13,7 @@
         android:padding="16dp"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="@color/text_primary"
         android:gravity="center" />
 
     <!-- Progress Bar -->

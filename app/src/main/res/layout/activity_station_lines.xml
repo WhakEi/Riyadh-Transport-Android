@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/background">
 
     <!-- Station Name -->
     <TextView
@@ -13,6 +13,7 @@
         android:padding="16dp"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="@color/text_primary"
         android:gravity="center" />
 
     <!-- Section Title -->
@@ -24,7 +25,8 @@
         android:paddingTop="8dp"
         android:text="@string/lines_passing_through"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="@color/text_primary" />
 
     <!-- Lines List -->
     <androidx.recyclerview.widget.RecyclerView

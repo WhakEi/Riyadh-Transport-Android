@@ -30,6 +30,18 @@ public class LineColorHelper {
             return context.getColor(R.color.metro_line_5);
         } else if (cleanLine.equalsIgnoreCase("Purple Line") || cleanLine.equals("6")) {
             return context.getColor(R.color.metro_line_6);
+        } else if (cleanLine.equalsIgnoreCase("المسار الأحمر") || cleanLine.equals("2")) {
+            return context.getColor(R.color.metro_line_2);
+        } else if (cleanLine.equalsIgnoreCase("المسار الأزرق") || cleanLine.equals("1")) {
+            return context.getColor(R.color.metro_line_1);
+        } else if (cleanLine.equalsIgnoreCase("المسار البرتقالي") || cleanLine.equals("3")) {
+            return context.getColor(R.color.metro_line_3);
+        } else if (cleanLine.equalsIgnoreCase("المسار الأصفر") || cleanLine.equals("4")) {
+            return context.getColor(R.color.metro_line_4);
+        } else if (cleanLine.equalsIgnoreCase("المسار الأخضر") || cleanLine.equals("5")) {
+            return context.getColor(R.color.metro_line_5);
+        } else if (cleanLine.equalsIgnoreCase("المسار البنفسجي") || cleanLine.equals("6")) {
+            return context.getColor(R.color.metro_line_6);
         }
 
         // Fallback for numeric line numbers
