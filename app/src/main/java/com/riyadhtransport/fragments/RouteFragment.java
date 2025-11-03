@@ -449,8 +449,9 @@ public class RouteFragment extends Fragment {
                             points.add(new GeoPoint(lat, lng));
                         }
                     } else if (segment.getFrom() instanceof String) {
-                        // It's a station name
-                        Station station = stationMap.get((String) segment.getFrom());
+                        // It's a station name - clean it before lookup
+                        String cleanName = cleanStationNameForLookup((String) segment.getFrom());
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -468,8 +469,9 @@ public class RouteFragment extends Fragment {
                             points.add(new GeoPoint(lat, lng));
                         }
                     } else if (segment.getTo() instanceof String) {
-                        // It's a station name
-                        Station station = stationMap.get((String) segment.getTo());
+                        // It's a station name - clean it before lookup
+                        String cleanName = cleanStationNameForLookup((String) segment.getTo());
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -479,7 +481,8 @@ public class RouteFragment extends Fragment {
                 // If parsing fails, fall back to stations list if available
                 if (segment.getStations() != null && !segment.getStations().isEmpty()) {
                     for (String stationName : segment.getStations()) {
-                        Station station = stationMap.get(stationName);
+                        String cleanName = cleanStationNameForLookup(stationName);
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -490,13 +493,34 @@ public class RouteFragment extends Fragment {
             // For metro/bus segments, use stations list
             if (segment.getStations() != null && !segment.getStations().isEmpty()) {
                 for (String stationName : segment.getStations()) {
-                    Station station = stationMap.get(stationName);
+                    String cleanName = cleanStationNameForLookup(stationName);
+                    Station station = stationMap.get(cleanName);
                     if (station != null) {
                         points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
+                    } else {
+                        android.util.Log.w(TAG, "addSegmentPoints: Station not found: " + stationName + " (cleaned: " + cleanName + ")");
                     }
                 }
             }
         }
+    }
+    
+    /**
+     * Clean station name by removing type suffixes like "(Bus)" or "(Metro)" for map lookup
+     */
+    private String cleanStationNameForLookup(String stationName) {
+        if (stationName == null) {
+            return null;
+        }
+        
+        String cleaned = stationName.trim();
+        if (cleaned.endsWith(" (Bus)")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 6).trim();
+        } else if (cleaned.endsWith(" (Metro)")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 8).trim();
+        }
+        
+        return cleaned;
     }
 
     private void zoomToRoute(MapView mapView, Route route) {

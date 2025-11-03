@@ -315,8 +315,9 @@ public class LiveArrivalManager {
         
         for (Arrival arrival : arrivals) {
             // Check if arrival matches line and destination
+            // Use flexible line matching to handle "Yellow Line" vs "4" or "1" vs "Blue Line"
             boolean lineMatches = line == null || line.isEmpty() || 
-                                  line.equalsIgnoreCase(arrival.getLine());
+                                  linesMatch(line, arrival.getLine());
             boolean destMatches = destination == null || destination.isEmpty() ||
                                   destination.equalsIgnoreCase(arrival.getDestination()) ||
                                   arrival.getDestination().contains(destination) ||
@@ -353,5 +354,66 @@ public class LiveArrivalManager {
         
         Log.d(TAG, "findValidArrival: No valid arrival found");
         return null;
+    }
+    
+    /**
+     * Check if two line identifiers match, handling different formats
+     * e.g., "Yellow Line" matches "4", "Blue Line" matches "1", etc.
+     */
+    private static boolean linesMatch(String line1, String line2) {
+        if (line1 == null || line2 == null) {
+            return false;
+        }
+        
+        // Direct match
+        if (line1.equalsIgnoreCase(line2)) {
+            return true;
+        }
+        
+        // Normalize line names to numbers
+        String normalized1 = normalizeMetroLine(line1);
+        String normalized2 = normalizeMetroLine(line2);
+        
+        return normalized1.equals(normalized2);
+    }
+    
+    /**
+     * Normalize metro line names to their numeric IDs
+     * Blue Line / 1 -> "1"
+     * Red Line / 2 -> "2"
+     * Orange Line / 3 -> "3"
+     * Yellow Line / 4 -> "4"
+     * Green Line / 5 -> "5"
+     * Purple Line / 6 -> "6"
+     */
+    private static String normalizeMetroLine(String line) {
+        if (line == null) {
+            return "";
+        }
+        
+        String cleanLine = line.trim();
+        
+        // Remove "Line " prefix if present
+        if (cleanLine.startsWith("Line ")) {
+            cleanLine = cleanLine.substring(5).trim();
+        }
+        
+        // Map color names to numbers
+        if (cleanLine.equalsIgnoreCase("Blue Line") || cleanLine.equalsIgnoreCase("Blue")) {
+            return "1";
+        } else if (cleanLine.equalsIgnoreCase("Red Line") || cleanLine.equalsIgnoreCase("Red")) {
+            return "2";
+        } else if (cleanLine.equalsIgnoreCase("Orange Line") || cleanLine.equalsIgnoreCase("Orange")) {
+            return "3";
+        } else if (cleanLine.equalsIgnoreCase("Yellow Line") || cleanLine.equalsIgnoreCase("Yellow")) {
+            return "4";
+        } else if (cleanLine.equalsIgnoreCase("Green Line") || cleanLine.equalsIgnoreCase("Green")) {
+            return "5";
+        } else if (cleanLine.equalsIgnoreCase("Purple Line") || cleanLine.equalsIgnoreCase("Purple")) {
+            return "6";
+        }
+        
+        // If already a number, return as-is
+        return cleanLine;
     }
 }
