@@ -103,6 +103,9 @@ public class StationLinesActivity extends AppCompatActivity {
         
         Log.d(TAG, "Refreshing live arrivals for station: " + stationName);
         
+        // Collect all lines to display (will expand metro lines by direction)
+        List<Line> displayLines = new ArrayList<>();
+        
         // Fetch arrivals for each line
         for (Line line : allLines) {
             line.setArrivalStatus("checking");
@@ -120,35 +123,101 @@ public class StationLinesActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             Log.d(TAG, "Got " + arrivals.size() + " arrivals for line " + line.getId());
                             
-                            // Extract arrival times and destination
-                            List<Integer> upcomingArrivals = new ArrayList<>();
-                            String destination = null;
-                            
-                            for (Arrival arrival : arrivals) {
-                                if (upcomingArrivals.size() >= 3) break;
-                                upcomingArrivals.add(arrival.getMinutesUntil());
-                                
-                                // Get destination from first arrival
-                                if (destination == null && arrival.getDestination() != null) {
-                                    destination = arrival.getDestination();
+                            // For metro lines, group by destination to show both directions
+                            if (line.isMetro()) {
+                                // Group arrivals by destination
+                                java.util.Map<String, List<Arrival>> arrivalsByDestination = new java.util.HashMap<>();
+                                for (Arrival arrival : arrivals) {
+                                    String dest = arrival.getDestination();
+                                    if (dest != null) {
+                                        if (!arrivalsByDestination.containsKey(dest)) {
+                                            arrivalsByDestination.put(dest, new ArrayList<>());
+                                        }
+                                        arrivalsByDestination.get(dest).add(arrival);
+                                    }
                                 }
-                            }
-                            
-                            line.setUpcomingArrivals(upcomingArrivals);
-                            line.setDestination(destination);
-                            
-                            // Set status based on arrival time
-                            if (!upcomingArrivals.isEmpty()) {
-                                int firstArrival = upcomingArrivals.get(0);
-                                if (firstArrival >= 59) {
-                                    line.setArrivalStatus("normal");
-                                } else {
-                                    line.setArrivalStatus("live");
+                                
+                                Log.d(TAG, "Found " + arrivalsByDestination.size() + " directions for metro line " + line.getId());
+                                
+                                // Create a separate line entry for each direction
+                                displayLines.clear();
+                                for (Line originalLine : allLines) {
+                                    if (originalLine.getId().equals(line.getId())) {
+                                        // This is the metro line we're processing
+                                        for (java.util.Map.Entry<String, List<Arrival>> entry : arrivalsByDestination.entrySet()) {
+                                            String destination = entry.getKey();
+                                            List<Arrival> destArrivals = entry.getValue();
+                                            
+                                            // Create a new line entry for this direction
+                                            Line directionLine = new Line(originalLine.getId(), originalLine.getName(), originalLine.getType());
+                                            directionLine.setDestination(destination);
+                                            
+                                            // Extract arrival times (up to 3)
+                                            List<Integer> upcomingArrivals = new ArrayList<>();
+                                            for (Arrival arr : destArrivals) {
+                                                if (upcomingArrivals.size() >= 3) break;
+                                                upcomingArrivals.add(arr.getMinutesUntil());
+                                            }
+                                            directionLine.setUpcomingArrivals(upcomingArrivals);
+                                            
+                                            // Set status
+                                            if (!upcomingArrivals.isEmpty()) {
+                                                int firstArrival = upcomingArrivals.get(0);
+                                                if (firstArrival >= 59) {
+                                                    directionLine.setArrivalStatus("normal");
+                                                } else {
+                                                    directionLine.setArrivalStatus("live");
+                                                }
+                                            } else {
+                                                directionLine.setArrivalStatus("hidden");
+                                            }
+                                            
+                                            displayLines.add(directionLine);
+                                        }
+                                    } else {
+                                        // Keep other lines as-is
+                                        displayLines.add(originalLine);
+                                    }
                                 }
                             } else {
-                                line.setArrivalStatus("hidden");
+                                // For bus lines, keep single entry with first destination
+                                List<Integer> upcomingArrivals = new ArrayList<>();
+                                String destination = null;
+                                
+                                for (Arrival arrival : arrivals) {
+                                    if (upcomingArrivals.size() >= 3) break;
+                                    upcomingArrivals.add(arrival.getMinutesUntil());
+                                    
+                                    // Get destination from first arrival
+                                    if (destination == null && arrival.getDestination() != null) {
+                                        destination = arrival.getDestination();
+                                    }
+                                }
+                                
+                                line.setUpcomingArrivals(upcomingArrivals);
+                                line.setDestination(destination);
+                                
+                                // Set status based on arrival time
+                                if (!upcomingArrivals.isEmpty()) {
+                                    int firstArrival = upcomingArrivals.get(0);
+                                    if (firstArrival >= 59) {
+                                        line.setArrivalStatus("normal");
+                                    } else {
+                                        line.setArrivalStatus("live");
+                                    }
+                                } else {
+                                    line.setArrivalStatus("hidden");
+                                }
+                                
+                                // Keep original line in display list
+                                displayLines.clear();
+                                for (Line originalLine : allLines) {
+                                    displayLines.add(originalLine);
+                                }
                             }
                             
+                            // Update adapter with new list
+                            adapter.setLines(displayLines);
                             adapter.notifyDataSetChanged();
                         });
                     }

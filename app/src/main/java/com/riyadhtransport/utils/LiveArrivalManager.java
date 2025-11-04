@@ -94,6 +94,10 @@ public class LiveArrivalManager {
                                         String finalDestination, ArrivalCallback callback) {
         Log.d(TAG, "Using fallback API for: " + stationName);
         
+        // Normalize line number (convert "Blue Line" to "1", etc.)
+        String normalizedLineNumber = normalizeMetroLine(lineNumber);
+        Log.d(TAG, "Normalized line number: " + lineNumber + " -> " + normalizedLineNumber);
+        
         // Step 1: Get station ID
         Map<String, String> request = new HashMap<>();
         request.put("station_name", stationName);
@@ -111,8 +115,8 @@ public class LiveArrivalManager {
                             String stationId = stationIdResp.getMatches().get(0).getStationId();
                             Log.d(TAG, "Got station ID: " + stationId);
                             
-                            // Step 2: Get station departures from RPT
-                            getRptDepartures(stationId, lineNumber, finalDestination, callback);
+                            // Step 2: Get station departures from RPT (use normalized line number)
+                            getRptDepartures(stationId, normalizedLineNumber, finalDestination, callback);
                         } else {
                             callback.onError("No station matches found");
                         }
