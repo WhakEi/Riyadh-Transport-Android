@@ -99,6 +99,8 @@ public class StationLinesActivity extends AppCompatActivity {
     private void refreshLiveArrivals() {
         if (stationName == null || allLines == null) return;
         
+        Log.d(TAG, "Refreshing live arrivals for " + allLines.size() + " lines at " + stationName);
+        
         Log.d(TAG, "Refreshing live arrivals for station: " + stationName);
         
         // Fetch arrivals for each line
@@ -118,14 +120,22 @@ public class StationLinesActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             Log.d(TAG, "Got " + arrivals.size() + " arrivals for line " + line.getId());
                             
-                            // Extract arrival times
+                            // Extract arrival times and destination
                             List<Integer> upcomingArrivals = new ArrayList<>();
+                            String destination = null;
+                            
                             for (Arrival arrival : arrivals) {
                                 if (upcomingArrivals.size() >= 3) break;
                                 upcomingArrivals.add(arrival.getMinutesUntil());
+                                
+                                // Get destination from first arrival
+                                if (destination == null && arrival.getDestination() != null) {
+                                    destination = arrival.getDestination();
+                                }
                             }
                             
                             line.setUpcomingArrivals(upcomingArrivals);
+                            line.setDestination(destination);
                             
                             // Set status based on arrival time
                             if (!upcomingArrivals.isEmpty()) {

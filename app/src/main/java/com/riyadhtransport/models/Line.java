@@ -14,6 +14,7 @@ public class Line {
     // Live arrival data (not serialized, runtime only)
     private transient List<Integer> upcomingArrivals;
     private transient String arrivalStatus; // "checking", "live", "hidden", "normal"
+    private transient String destination; // Live destination from API
 
     public Line() {}
 
@@ -61,5 +62,10 @@ public class Line {
     public String getArrivalStatus() { return arrivalStatus; }
     public void setArrivalStatus(String arrivalStatus) { 
         this.arrivalStatus = arrivalStatus; 
+    }
+    
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { 
+        this.destination = destination; 
     }
 }

@@ -142,14 +142,17 @@ public class JourneyTimeCalculator {
                             segment.setNextArrivalMinutes(validArrival.getMinutesUntil());
                             segment.setRefinedTerminus(validArrival.getDestination());
                             
-                            // Collect upcoming arrivals for display
+                            // Collect upcoming arrivals for display (absolute times, not relative to cumulative)
                             List<Integer> upcomingArrivals = new ArrayList<>();
                             for (Arrival arr : arrivals) {
-                                if (arr.getMinutesUntil() >= currentCumulativeTime) {
+                                // Show all arrivals that haven't departed yet (minutesUntil >= 0)
+                                if (arr.getMinutesUntil() >= 0) {
                                     upcomingArrivals.add(arr.getMinutesUntil());
                                     if (upcomingArrivals.size() >= 3) break;
                                 }
                             }
+                            
+                            Log.d(TAG, "Collected " + upcomingArrivals.size() + " upcoming arrivals for display");
                             segment.setUpcomingArrivals(upcomingArrivals);
                             
                             // Determine status based on arrival time
