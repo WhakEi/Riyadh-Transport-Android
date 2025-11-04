@@ -161,7 +161,7 @@ public class ApiClient {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
                         // Add required headers for RPT.sa (updated for new API requirements)
-                        return chain.proceed(
+                        okhttp3.Response response = chain.proceed(
                                 chain.request()
                                         .newBuilder()
                                         .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36")
@@ -182,15 +182,32 @@ public class ApiClient {
                                         .header("sec-ch-ua-mobile", "?1")
                                         .build()
                         );
+                        
+                        // Log the raw response body for debugging
+                        if (response.body() != null) {
+                            String responseBody = response.body().string();
+                            android.util.Log.d("RptApiResponse", "Response body: " + responseBody.substring(0, Math.min(500, responseBody.length())));
+                            
+                            // Recreate response with the body we just read
+                            return response.newBuilder()
+                                    .body(okhttp3.ResponseBody.create(response.body().contentType(), responseBody))
+                                    .build();
+                        }
+                        return response;
                     })
                     .addInterceptor(loggingInterceptor)
                     .build();
+
+            // Create lenient Gson for parsing potentially malformed JSON
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setLenient()
+                    .create();
 
             // Create Retrofit instance for RPT
             rptRetrofit = new Retrofit.Builder()
                     .baseUrl(RPT_BASE_URL)
                     .client(client)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
         }
         return rptRetrofit;
