@@ -161,13 +161,15 @@ public class ApiClient {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
                         // Add required headers for RPT.sa (updated for new API requirements)
-                        okhttp3.Response response = chain.proceed(
+                        // NOTE: Do NOT manually add Accept-Encoding header - OkHttp handles gzip automatically
+                        // When we add it manually, OkHttp won't decompress the response
+                        return chain.proceed(
                                 chain.request()
                                         .newBuilder()
                                         .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36")
                                         .header("Accept", "application/json, text/javascript, */*; q=0.01")
                                         .header("Accept-Language", "en-US,en;q=0.5")
-                                        .header("Accept-Encoding", "gzip, deflate, br")
+                                        // Accept-Encoding removed - let OkHttp handle compression automatically
                                         .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                                         .header("X-Requested-With", "XMLHttpRequest")
                                         .header("Origin", "https://www.rpt.sa")
@@ -182,18 +184,6 @@ public class ApiClient {
                                         .header("sec-ch-ua-mobile", "?1")
                                         .build()
                         );
-                        
-                        // Log the raw response body for debugging
-                        if (response.body() != null) {
-                            String responseBody = response.body().string();
-                            android.util.Log.d("RptApiResponse", "Response body: " + responseBody.substring(0, Math.min(500, responseBody.length())));
-                            
-                            // Recreate response with the body we just read
-                            return response.newBuilder()
-                                    .body(okhttp3.ResponseBody.create(response.body().contentType(), responseBody))
-                                    .build();
-                        }
-                        return response;
                     })
                     .addInterceptor(loggingInterceptor)
                     .build();
