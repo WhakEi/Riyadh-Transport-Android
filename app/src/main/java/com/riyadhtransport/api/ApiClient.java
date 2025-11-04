@@ -15,7 +15,7 @@ public class ApiClient {
     // For production, use your actual server URL
     private static final String BASE_URL = "http://mainserver.inirl.net:5000/";
     private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/";
-    private static final String RPT_BASE_URL = "https://rpt.sa/";
+    private static final String RPT_BASE_URL = "https://www.rpt.sa/";
     
     private static Retrofit retrofit = null;
     private static Retrofit nominatimRetrofit = null;
@@ -151,23 +151,39 @@ public class ApiClient {
     
     private static Retrofit getRptClient() {
         if (rptRetrofit == null) {
+            // Create logging interceptor for debugging
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            
             // Create OkHttpClient with timeout settings
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
-                        // Add required headers for RPT.sa
+                        // Add required headers for RPT.sa (updated for new API requirements)
                         return chain.proceed(
                                 chain.request()
                                         .newBuilder()
-                                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36")
+                                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36")
                                         .header("Accept", "application/json, text/javascript, */*; q=0.01")
-                                        .header("Accept-Language", "en-US,en;q=0.9")
+                                        .header("Accept-Language", "en-US,en;q=0.5")
+                                        .header("Accept-Encoding", "gzip, deflate, br")
                                         .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                                         .header("X-Requested-With", "XMLHttpRequest")
+                                        .header("Origin", "https://www.rpt.sa")
+                                        .header("DNT", "1")
+                                        .header("Connection", "keep-alive")
+                                        .header("Referer", "https://www.rpt.sa/en/stationdetails")
+                                        .header("Sec-Fetch-Dest", "empty")
+                                        .header("Sec-Fetch-Mode", "cors")
+                                        .header("Sec-Fetch-Site", "same-origin")
+                                        .header("sec-ch-ua-platform", "\"Android\"")
+                                        .header("sec-ch-ua", "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"143\", \"Google Chrome\";v=\"143\"")
+                                        .header("sec-ch-ua-mobile", "?1")
                                         .build()
                         );
                     })
+                    .addInterceptor(loggingInterceptor)
                     .build();
 
             // Create Retrofit instance for RPT
