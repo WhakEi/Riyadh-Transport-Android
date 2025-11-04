@@ -117,8 +117,13 @@ public class LineAdapter extends RecyclerView.Adapter<LineAdapter.LineViewHolder
 
             if (line.isMetro()) {
                 lineIcon.setImageResource(R.drawable.ic_metro);
-                // Show line name (e.g., "Blue Line") as subtitle for metro
-                lineType.setText(line.getName());
+                
+                // Show route summary if available, otherwise show line name as subtitle
+                if (line.getRouteSummary() != null && !line.getRouteSummary().isEmpty()) {
+                    lineType.setText(line.getRouteSummary());
+                } else {
+                    lineType.setText(line.getName());
+                }
 
                 // Set color based on metro line
                 int color = LineColorHelper.getMetroLineColor(itemView.getContext(), line.getId());
@@ -126,8 +131,13 @@ public class LineAdapter extends RecyclerView.Adapter<LineAdapter.LineViewHolder
                 lineIcon.setColorFilter(color);
             } else {
                 lineIcon.setImageResource(R.drawable.ic_bus);
-                // Show line number (e.g., "230") as subtitle for bus - no "Bus" prefix needed
-                lineType.setText(line.getId());
+                
+                // Show route summary if available, otherwise show line number as subtitle
+                if (line.getRouteSummary() != null && !line.getRouteSummary().isEmpty()) {
+                    lineType.setText(line.getRouteSummary());
+                } else {
+                    lineType.setText(line.getId());
+                }
 
                 // Set bus color
                 int color = LineColorHelper.getBusLineColor(itemView.getContext());

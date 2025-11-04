@@ -243,6 +243,14 @@ public class LinesFragment extends Fragment {
                         data.getAsJsonArray("stations").forEach(element ->
                                 stations.add(element.getAsString()));
                     }
+                    
+                    // Set route summary for metro: first - last station
+                    if (stations.size() >= 2) {
+                        String firstStation = stations.get(0);
+                        String lastStation = stations.get(stations.size() - 1);
+                        line.setRouteSummary(firstStation + " - " + lastStation);
+                    }
+                    
                     showStationsList(line, stations);
                 }
             }
@@ -270,6 +278,11 @@ public class LinesFragment extends Fragment {
                     List<String> directions = new ArrayList<>();
                     for (Map.Entry<String, com.google.gson.JsonElement> entry : data.entrySet()) {
                         directions.add(entry.getKey());
+                    }
+
+                    // Set route summary for bus: direction1 - direction2
+                    if (directions.size() >= 2) {
+                        line.setRouteSummary(directions.get(0) + " - " + directions.get(1));
                     }
 
                     if (directions.size() == 1) {

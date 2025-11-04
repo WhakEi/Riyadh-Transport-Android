@@ -15,6 +15,7 @@ public class Line {
     private transient List<Integer> upcomingArrivals;
     private transient String arrivalStatus; // "checking", "live", "hidden", "normal"
     private transient String destination; // Live destination from API
+    private transient String routeSummary; // "Station A - Station B" for display
 
     public Line() {}
 
@@ -67,5 +68,10 @@ public class Line {
     public String getDestination() { return destination; }
     public void setDestination(String destination) { 
         this.destination = destination; 
+    }
+    
+    public String getRouteSummary() { return routeSummary; }
+    public void setRouteSummary(String routeSummary) { 
+        this.routeSummary = routeSummary; 
     }
 }
