@@ -29,6 +29,9 @@ import com.riyadhtransport.api.ApiClient;
 import com.riyadhtransport.models.Route;
 import com.riyadhtransport.models.RouteSegment;
 import com.riyadhtransport.utils.LocationHelper;
+import com.riyadhtransport.utils.JourneyTimeCalculator;
+import android.os.Handler;
+import android.os.Looper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.HashMap;
@@ -46,6 +49,9 @@ import android.graphics.Paint;
 
 public class RouteFragment extends Fragment {
     
+    private static final String TAG = "RouteFragment";
+    private static final long REFRESH_INTERVAL_MS = 60000; // 60 seconds
+    
     private AutoCompleteTextView startInput;
     private AutoCompleteTextView endInput;
     private Button findRouteButton;
@@ -61,6 +67,10 @@ public class RouteFragment extends Fragment {
     private String startName = "", endName = "";
     private List<Station> allStations = new ArrayList<>();
     private Map<String, Station> stationMap = new HashMap<>();
+    
+    private Route currentRoute;
+    private Handler refreshHandler;
+    private Runnable refreshRunnable;
     
     @Nullable
     @Override
@@ -285,11 +295,15 @@ public class RouteFragment extends Fragment {
             Route routeObj = gson.fromJson(json, Route.class);
 
             if (routeObj != null && routeObj.getSegments() != null) {
+                currentRoute = routeObj;
                 segmentAdapter.setSegments(routeObj.getSegments());
                 routeDetailsContainer.setVisibility(View.VISIBLE);
 
                 // Draw route on map
                 drawRouteOnMap(routeObj);
+                
+                // Start live arrival updates
+                setupAutoRefresh();
             }
         } catch (Exception e) {
             Toast.makeText(requireContext(),
@@ -297,8 +311,55 @@ public class RouteFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
         }
     }
+    
+    private void setupAutoRefresh() {
+        // Stop any existing refresh
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
+        
+        refreshHandler = new Handler(Looper.getMainLooper());
+        refreshRunnable = new Runnable() {
+            @Override
+            public void run() {
+                refreshLiveData();
+                refreshHandler.postDelayed(this, REFRESH_INTERVAL_MS);
+            }
+        };
+        
+        // Start the first refresh immediately
+        refreshLiveData();
+    }
+    
+    private void refreshLiveData() {
+        if (currentRoute == null) return;
+        
+        android.util.Log.d(TAG, "Refreshing live arrival data...");
+        
+        JourneyTimeCalculator.calculateLiveJourneyTime(currentRoute, 
+            new JourneyTimeCalculator.CalculationCallback() {
+                @Override
+                public void onComplete(int newTotalMinutes) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            android.util.Log.d(TAG, "Journey time updated: " + newTotalMinutes + " minutes");
+                            segmentAdapter.notifyDataSetChanged();
+                        });
+                    }
+                }
+                
+                @Override
+                public void onError(String message) {
+                    android.util.Log.e(TAG, "Error calculating journey time: " + message);
+                }
+            });
+    }
     private void drawRouteOnMap(Route route) {
+        android.util.Log.d(TAG, "drawRouteOnMap: Starting to draw route with " + 
+            (route != null && route.getSegments() != null ? route.getSegments().size() : 0) + " segments");
+        
         if (getActivity() == null || !(getActivity() instanceof MainActivity)) {
+            android.util.Log.w(TAG, "drawRouteOnMap: Activity is null or not MainActivity");
             return;
         }
 
@@ -306,9 +367,12 @@ public class RouteFragment extends Fragment {
         MapView mapView = mainActivity.getMapView();
 
         if (mapView == null) {
+            android.util.Log.w(TAG, "drawRouteOnMap: MapView is null");
             return;
         }
 
+        android.util.Log.d(TAG, "drawRouteOnMap: MapView found, clearing existing overlays");
+        
         // Clear existing route overlays (keep location overlay)
         mapView.getOverlays().removeIf(overlay -> overlay instanceof Polyline);
 
@@ -351,17 +415,23 @@ public class RouteFragment extends Fragment {
             }
 
             if (!points.isEmpty()) {
+                android.util.Log.d(TAG, "drawRouteOnMap: Adding polyline with " + points.size() + " points for segment type: " + segment.getType());
                 line.setPoints(points);
                 mapView.getOverlays().add(line);
+            } else {
+                android.util.Log.w(TAG, "drawRouteOnMap: No points for segment type: " + segment.getType());
             }
         }
 
+        android.util.Log.d(TAG, "drawRouteOnMap: Total overlays on map: " + mapView.getOverlays().size());
         mapView.invalidate();
 
         // Zoom to show the entire route
         if (!route.getSegments().isEmpty()) {
             zoomToRoute(mapView, route);
         }
+        
+        android.util.Log.d(TAG, "drawRouteOnMap: Complete");
     }
 
     private void addSegmentPoints(RouteSegment segment, List<GeoPoint> points) {
@@ -379,8 +449,9 @@ public class RouteFragment extends Fragment {
                             points.add(new GeoPoint(lat, lng));
                         }
                     } else if (segment.getFrom() instanceof String) {
-                        // It's a station name
-                        Station station = stationMap.get((String) segment.getFrom());
+                        // It's a station name - clean it before lookup
+                        String cleanName = cleanStationNameForLookup((String) segment.getFrom());
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -398,8 +469,9 @@ public class RouteFragment extends Fragment {
                             points.add(new GeoPoint(lat, lng));
                         }
                     } else if (segment.getTo() instanceof String) {
-                        // It's a station name
-                        Station station = stationMap.get((String) segment.getTo());
+                        // It's a station name - clean it before lookup
+                        String cleanName = cleanStationNameForLookup((String) segment.getTo());
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -409,7 +481,8 @@ public class RouteFragment extends Fragment {
                 // If parsing fails, fall back to stations list if available
                 if (segment.getStations() != null && !segment.getStations().isEmpty()) {
                     for (String stationName : segment.getStations()) {
-                        Station station = stationMap.get(stationName);
+                        String cleanName = cleanStationNameForLookup(stationName);
+                        Station station = stationMap.get(cleanName);
                         if (station != null) {
                             points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
                         }
@@ -420,13 +493,34 @@ public class RouteFragment extends Fragment {
             // For metro/bus segments, use stations list
             if (segment.getStations() != null && !segment.getStations().isEmpty()) {
                 for (String stationName : segment.getStations()) {
-                    Station station = stationMap.get(stationName);
+                    String cleanName = cleanStationNameForLookup(stationName);
+                    Station station = stationMap.get(cleanName);
                     if (station != null) {
                         points.add(new GeoPoint(station.getLatitude(), station.getLongitude()));
+                    } else {
+                        android.util.Log.w(TAG, "addSegmentPoints: Station not found: " + stationName + " (cleaned: " + cleanName + ")");
                     }
                 }
             }
         }
+    }
+    
+    /**
+     * Clean station name by removing type suffixes like "(Bus)" or "(Metro)" for map lookup
+     */
+    private String cleanStationNameForLookup(String stationName) {
+        if (stationName == null) {
+            return null;
+        }
+        
+        String cleaned = stationName.trim();
+        if (cleaned.endsWith(" (Bus)")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 6).trim();
+        } else if (cleaned.endsWith(" (Metro)")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 8).trim();
+        }
+        
+        return cleaned;
     }
 
     private void zoomToRoute(MapView mapView, Route route) {
@@ -485,5 +579,29 @@ public class RouteFragment extends Fragment {
         endLat = latitude;
         endLng = longitude;
         endName = locationText;
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (refreshHandler != null && refreshRunnable != null && currentRoute != null) {
+            refreshHandler.post(refreshRunnable);
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
     }
 }

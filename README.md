@@ -6,12 +6,12 @@ An Android mobile application for Riyadh public transport, built in Java. This a
 
 - ✅ **Route Planning**: Find routes between locations using public transport
 - ✅ **Station Search**: Browse and search all metro and bus stations
-- ⚫ **Live Arrivals**: View real-time arrival information for metro and buses
+- ✅ **Live Arrivals**: View real-time arrival information for metro and buses
 - ✅ **Interactive Map**: View stations and routes with OpenStreetMap and MapTiler
 - ✅ **GPS Location**: Use your current location as starting point
 - ✅ **Multilingual**: Supports English and Arabic (العربية) with language-specific map labels
 - ⏳ **Favorites and Route History**: Ability to save a location or reopen a recently searched one to redo a route search. As well as favorite a line or view arrivals on a favorite station (Partial support, only favorite locations are currently supported)
-- ⏳ **Dark Mode**: View UI and Map in Dark Mode when enabled by OS (Partial support, only UI currently supports Dark Mode)
+- ✅ **Dark Mode**: View UI and Map in Dark Mode when enabled by OS (Partial support, only UI currently supports Dark Mode)
 - ⚫ **iOS Support**: Native version that runs on iOS with ability to use Apple Maps or MapTiler depending on what the user chooses
 
 

@@ -33,6 +33,7 @@
     <string name="metro_lines">مسارات القطار</string>
     <string name="bus_lines">خطوط الحافلات</string>
     <string name="select_direction">اختر الاتجاه</string>
+    <string name="ring_route_format">المسار الدائري %1$s</string>
     
     <!-- Metro Lines -->
     <string name="blue_line">المسار الأزرق</string>
@@ -98,7 +99,7 @@
 
     <!-- About -->
     <string name="about_app_text">السلام عليكم ولرحمة الله وبركاته.  أهلاً بكم في تطبيق RPTP للهاتف المحمول, تطبيق مفتوح المصدر يوفر معلومات شاملة عن النقل العام لأنظمة القطار والحافلات في الرياض. اعثر على المسارات، وشاهد المحطات القريبة، وتنقل في المدينة بسهولة.</string>
-    <string name="app_version">الإصدار 0.5.2</string>
+    <string name="app_version">الإصدار 0.6.7</string>
 
     <!-- Cache -->
     <string name="clear_cache">مسح ذاكرة التخزين المؤقت</string>
@@ -139,4 +140,13 @@
     <string name="error_location_default">غير قادر على الحصول على الموقع. استخدام الافتراضي.</string>
     <string name="info_line_details_loaded">تم تحميل تفاصيل الخط</string>
     <string name="info_arrivals_loaded">تم تحميل المواعيد</string>
+
+    <!-- Live Arrivals -->
+    <string name="checking_live_data">جاري التحقق...</string>
+    <string name="arriving_now">وصول الآن</string>
+    <string name="arriving_in_minutes">%d د</string>
+    <string name="arriving_at_time">%s</string>
+    <string name="towards">باتجاه %s</string>
+    <string name="take_bus_towards">اركب الحافلة %1$s باتجاه %2$s وانزل في %3$s</string>
+    <string name="take_metro_towards">اركب %1$s باتجاه %2$s وانزل في %3$s</string>
 </resources>

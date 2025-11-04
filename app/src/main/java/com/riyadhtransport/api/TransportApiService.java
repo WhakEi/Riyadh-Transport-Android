@@ -44,4 +44,10 @@ public interface TransportApiService {
     
     @POST("viewmtr")
     Call<JsonObject> viewMetro(@Body JsonObject lineNumber);
+    
+    @POST("giveMeId")
+    Call<Map<String, Object>> getStationId(@Body Map<String, String> stationName);
+    
+    @POST("refineTerminus")
+    Call<Map<String, Object>> refineTerminus(@Body Map<String, String> request);
 }

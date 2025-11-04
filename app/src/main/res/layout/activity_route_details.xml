@@ -27,7 +27,7 @@
 
             <!-- Total Time -->
             <TextView
-                android:id="@+id/total_time"
+                android:id="@+id/total_time_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
