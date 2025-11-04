@@ -10,12 +10,12 @@ public class Line {
     private String color;
     private List<String> directions;
     private Map<String, List<String>> stationsByDirection;
-    
+    private String routeSummary; // "Station A - Station B" for display
+
     // Live arrival data (not serialized, runtime only)
     private transient List<Integer> upcomingArrivals;
     private transient String arrivalStatus; // "checking", "live", "hidden", "normal"
     private transient String destination; // Live destination from API
-    private transient String routeSummary; // "Station A - Station B" for display
 
     public Line() {}
 
@@ -53,25 +53,25 @@ public class Line {
     public boolean isBus() {
         return "bus".equalsIgnoreCase(type);
     }
-    
+
     // Live arrival getters and setters
     public List<Integer> getUpcomingArrivals() { return upcomingArrivals; }
-    public void setUpcomingArrivals(List<Integer> upcomingArrivals) { 
-        this.upcomingArrivals = upcomingArrivals; 
+    public void setUpcomingArrivals(List<Integer> upcomingArrivals) {
+        this.upcomingArrivals = upcomingArrivals;
     }
-    
+
     public String getArrivalStatus() { return arrivalStatus; }
-    public void setArrivalStatus(String arrivalStatus) { 
-        this.arrivalStatus = arrivalStatus; 
+    public void setArrivalStatus(String arrivalStatus) {
+        this.arrivalStatus = arrivalStatus;
     }
-    
+
     public String getDestination() { return destination; }
-    public void setDestination(String destination) { 
-        this.destination = destination; 
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
-    
+
     public String getRouteSummary() { return routeSummary; }
-    public void setRouteSummary(String routeSummary) { 
-        this.routeSummary = routeSummary; 
+    public void setRouteSummary(String routeSummary) {
+        this.routeSummary = routeSummary;
     }
 }
