@@ -284,6 +284,9 @@ public class LinesFragment extends Fragment {
                     if (directions.size() >= 2) {
                         line.setRouteSummary(directions.get(0) + " - " + directions.get(1));
                     }
+                    else {
+                        line.setRouteSummary(directions.get(0) + " Ring");
+                    }
 
                     if (directions.size() == 1) {
                         // Ring route - single direction
