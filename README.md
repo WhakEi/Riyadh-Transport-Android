@@ -12,13 +12,20 @@ An Android mobile application for Riyadh public transport, built in Java. This a
 - ✅ **Multilingual**: Supports English and Arabic (العربية) with language-specific map labels
 - ✅ **Favorites and Route History**: Ability to save a location or reopen a recently searched one to redo a route search. As well as favorite a line or view arrivals on a favorite station
 - ✅ **Dark Mode**: View UI and Map in Dark Mode when enabled by OS
-- ⚫ **iOS Support**: Native version that runs on iOS with ability to use Apple Maps or MapTiler depending on what the user chooses
+- ✅ **iOS Support**: Native iOS version built with Swift and SwiftUI using Apple Maps ([See iOS-App/](iOS-App/))
 
 
 ## Installation
+
+### Android
 You may install the Pre-Built APK in [Releases](https://github.com/WhakEi/Riyadh-Transport-Mobile/releases). A device running Android 7.0 (Nougat) or higher is required
 
+### iOS
+See the [iOS-App README](iOS-App/README.md) for setup instructions. Requires iOS 15.0+ and Xcode to build.
+
 ## Build from Source
+
+### Android
 
 ### 1. Clone the Repository
 
@@ -37,29 +44,52 @@ cd Riyadh-Transport-Mobile
 3. Connect an Android device or start an emulator
 4. Click Run (▶️) button
 
+### iOS
+
+**Prerequisites:**
+- macOS 12.0 or later
+- Xcode 14.0 or later
+
+1. See the [iOS Quick Start Guide](iOS-App/QUICK_START.md)
+2. Or follow the [detailed setup guide](iOS-App/SETUP_GUIDE.md)
+
 ## Project Structure
 
+### Android App
 ```
-Riyadh-Transport-Mobile/
-├── app/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/com/riyadhtransport/
-│   │       │   ├── adapters/          # RecyclerView adapters
-│   │       │   ├── api/               # API service and client
-│   │       │   ├── fragments/         # UI fragments
-│   │       │   ├── models/            # Data models
-│   │       │   ├── utils/             # Utility classes
-│   │       │   └── MainActivity.java  # Main activity
-│   │       ├── res/
-│   │       │   ├── layout/            # XML layouts
-│   │       │   ├── values/            # Strings, colors, themes (English)
-│   │       │   └── values-ar/         # Arabic translations
-│   │       └── AndroidManifest.xml
+app/
+├── src/
+│   └── main/
+│       ├── java/com/riyadhtransport/
+│       │   ├── adapters/          # RecyclerView adapters
+│       │   ├── api/               # API service and client
+│       │   ├── fragments/         # UI fragments
+│       │   ├── models/            # Data models
+│       │   ├── utils/             # Utility classes
+│       │   └── MainActivity.java  # Main activity
+│       ├── res/
+│       │   ├── layout/            # XML layouts
+│       │   ├── values/            # Strings, colors, themes (English)
+│       │   └── values-ar/         # Arabic translations
+│       └── AndroidManifest.xml
 │   └── build.gradle
 ├── build.gradle
 └── settings.gradle
 ```
+
+### iOS App
+```
+iOS-App/
+└── RiyadhTransport/
+    ├── Models/                # Data models (Swift)
+    ├── Services/              # API client
+    ├── Utilities/             # Helper classes
+    ├── Views/                 # SwiftUI views
+    ├── Resources/             # Localizations
+    └── Info.plist
+```
+
+See [iOS-App/README.md](iOS-App/README.md) for complete iOS documentation.
 
 ## API Integration
 
