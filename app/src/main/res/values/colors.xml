@@ -36,4 +36,9 @@
     <!-- Bus and Walk colors (matching frontend) -->
     <color name="bus_color">#18a034</color>
     <color name="walk_color">#6c757d</color>
+    
+    <!-- Alert colors -->
+    <color name="alert_background">#FFF3E0</color>
+    <color name="alert_icon_color">#FF9800</color>
+    <color name="text_hint">#9E9E9E</color>
 </resources>

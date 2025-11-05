@@ -4,14 +4,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.Gson;
 import com.riyadhtransport.adapters.RouteSegmentAdapter;
+import com.riyadhtransport.adapters.AlertAdapter;
 import com.riyadhtransport.models.Route;
+import com.riyadhtransport.models.RouteSegment;
+import com.riyadhtransport.models.LineAlert;
 import com.riyadhtransport.utils.JourneyTimeCalculator;
+import com.riyadhtransport.utils.AlertsManager;
+import java.util.HashSet;
+import java.util.Set;
 
 public class RouteDetailsActivity extends AppCompatActivity {
     private static final String TAG = "RouteDetailsActivity";
@@ -25,6 +32,10 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private Handler refreshHandler;
     private Runnable refreshRunnable;
     
+    private LinearLayout alertsContainer;
+    private RecyclerView alertsRecycler;
+    private AlertAdapter alertAdapter;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,11 +44,18 @@ public class RouteDetailsActivity extends AppCompatActivity {
         // Initialize views
         routeSegmentsRecycler = findViewById(R.id.route_segments_recycler);
         totalTimeText = findViewById(R.id.total_time_text);
+        alertsContainer = findViewById(R.id.alerts_container);
+        alertsRecycler = findViewById(R.id.alerts_recycler);
         
         // Setup RecyclerView
         routeSegmentsRecycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RouteSegmentAdapter();
         routeSegmentsRecycler.setAdapter(adapter);
+        
+        // Setup Alerts RecyclerView
+        alertAdapter = new AlertAdapter();
+        alertsRecycler.setLayoutManager(new LinearLayoutManager(this));
+        alertsRecycler.setAdapter(alertAdapter);
         
         // Get route data from intent
         String routeJson = getIntent().getStringExtra("route_json");
@@ -48,8 +66,65 @@ public class RouteDetailsActivity extends AppCompatActivity {
             if (currentRoute != null) {
                 displayRoute();
                 setupAutoRefresh();
+                loadLineSpecificAlerts();
             }
         }
+    }
+    
+    private void loadLineSpecificAlerts() {
+        if (currentRoute == null || currentRoute.getSegments() == null) {
+            return;
+        }
+        
+        // Collect all line numbers from the route
+        Set<String> lineNumbers = new HashSet<>();
+        for (RouteSegment segment : currentRoute.getSegments()) {
+            if (segment.isMetro() || segment.isBus()) {
+                String line = segment.getLine();
+                if (line != null && !line.isEmpty()) {
+                    lineNumbers.add(line);
+                }
+            }
+        }
+        
+        if (lineNumbers.isEmpty()) {
+            alertsContainer.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Fetch all alerts and filter for the lines in this route
+        AlertsManager.getAlerts(this, new AlertsManager.AlertsCallback() {
+            @Override
+            public void onSuccess(java.util.List<LineAlert> allAlerts) {
+                runOnUiThread(() -> {
+                    java.util.List<LineAlert> relevantAlerts = new java.util.ArrayList<>();
+                    for (LineAlert alert : allAlerts) {
+                        if (alert.isLineSpecific()) {
+                            // Check if this alert applies to any line in the route
+                            for (String lineNumber : lineNumbers) {
+                                if (alert.appliesToLine(lineNumber)) {
+                                    relevantAlerts.add(alert);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (!relevantAlerts.isEmpty()) {
+                        alertAdapter.setAlerts(relevantAlerts);
+                        alertsContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        alertsContainer.setVisibility(View.GONE);
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String message) {
+                Log.e(TAG, "Error loading alerts: " + message);
+                runOnUiThread(() -> alertsContainer.setVisibility(View.GONE));
+            }
+        });
     }
     
     private void displayRoute() {

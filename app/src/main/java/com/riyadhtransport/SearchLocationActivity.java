@@ -129,7 +129,8 @@ public class SearchLocationActivity extends AppCompatActivity {
     
     private void performSearch(String query) {
         if (query.trim().isEmpty()) {
-            adapter.setResults(new ArrayList<>());
+            // Show history and favorites when search is empty
+            showHistoryAndFavorites();
             return;
         }
         
@@ -147,12 +148,41 @@ public class SearchLocationActivity extends AppCompatActivity {
                 result.setLatitude(station.getLatitude());
                 result.setLongitude(station.getLongitude());
                 result.setStation(true);
+                result.setType("search");
                 combinedResults.add(result);
             }
         }
         
         // Search in Nominatim
         searchNominatim(query, combinedResults);
+    }
+    
+    private void showHistoryAndFavorites() {
+        List<SearchResult> results = new ArrayList<>();
+        
+        // Add search history (last 5 searches)
+        List<SearchResult> history = com.riyadhtransport.utils.SearchHistoryManager.getHistory(this);
+        for (SearchResult item : history) {
+            item.setType("history");
+            item.setDescription(getString(R.string.recent_search));
+            results.add(item);
+        }
+        
+        // Add favorites
+        List<com.riyadhtransport.models.Favorite> favorites = 
+            com.riyadhtransport.utils.FavoritesManager.getFavorites(this);
+        for (com.riyadhtransport.models.Favorite fav : favorites) {
+            SearchResult result = new SearchResult();
+            result.setName(fav.getName());
+            result.setDescription(getString(R.string.favorite));
+            result.setLatitude(fav.getLatitude());
+            result.setLongitude(fav.getLongitude());
+            result.setStation(fav.isStation());
+            result.setType("favorite");
+            results.add(result);
+        }
+        
+        adapter.setResults(results);
     }
     
     private void searchNominatim(String query, List<SearchResult> existingResults) {
@@ -187,6 +217,7 @@ public class SearchLocationActivity extends AppCompatActivity {
                             result.setLatitude(nominatim.getLatitudeAsDouble());
                             result.setLongitude(nominatim.getLongitudeAsDouble());
                             result.setStation(false);
+                            result.setType("search");
                             existingResults.add(result);
                         }
                     }
@@ -206,6 +237,11 @@ public class SearchLocationActivity extends AppCompatActivity {
     }
     
     private void onResultClick(SearchResult result) {
+        // Add to search history (unless it's already a history or favorite item)
+        if (!"history".equals(result.getType()) && !"favorite".equals(result.getType())) {
+            com.riyadhtransport.utils.SearchHistoryManager.addToHistory(this, result);
+        }
+        
         // Return result to calling activity
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_RESULT_NAME, result.getName());
