@@ -99,7 +99,7 @@
 
     <!-- About -->
     <string name="about_app_text">Welcome to RPTP Mobile, an open-source mobile app providing comprehensive public transportation information for Riyadh\'s metro and bus systems. Find routes, view nearby stations, and navigate the city with ease.</string>
-    <string name="app_version">Version 0.6.7</string>
+    <string name="app_version">Version 0.7.2</string>
 
     <!-- Cache -->
     <string name="clear_cache">Clear Cache</string>
@@ -150,7 +150,7 @@
     <string name="arriving_at_time">%s</string>
     <string name="towards">towards %s</string>
     <string name="take_bus_towards">Take Bus %1$s towards %2$s and disembark at %3$s</string>
-    
+
     <!-- Alerts -->
     <string name="expand_collapse_alert">Expand or collapse alert</string>
     <string name="no_alerts">No alerts at this time</string>
