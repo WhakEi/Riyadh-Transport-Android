@@ -48,19 +48,8 @@ public class AlertsManager {
      * Get alerts from cache or fetch from API
      */
     public static void getAlerts(Context context, AlertsCallback callback) {
-        // Check cache first
-        List<LineAlert> cachedAlerts = getCachedAlerts(context);
-        long lastUpdate = getLastUpdateTime(context);
-        long currentTime = System.currentTimeMillis();
-
-        // Use cache if it's fresh
-        if (!cachedAlerts.isEmpty() && (currentTime - lastUpdate) < CACHE_DURATION_MS) {
-            Log.d(TAG, "Using cached alerts (" + cachedAlerts.size() + " alerts)");
-            callback.onSuccess(cachedAlerts);
-            return;
-        }
-
-        // Fetch from API
+        // Always fetch from API to ensure deleted alerts are removed
+        // Cache is used only as fallback on error
         fetchAlertsFromApi(context, callback);
     }
 
@@ -70,10 +59,13 @@ public class AlertsManager {
     private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
         Log.d(TAG, "Fetching alerts from AppWrite REST API...");
 
+        // Get collection ID based on current language
+        String collectionId = AppWriteClient.getAlertsCollectionId(context);
+
         // Call AppWrite REST API using Retrofit
         AppWriteClient.getApiService().listDocuments(
                 AppWriteClient.DATABASE_ID,
-                AppWriteClient.ALERTS_COLLECTION_ID,
+                collectionId,
                 AppWriteClient.PROJECT_ID
         ).enqueue(new Callback<Map<String, Object>>() {
             @Override
