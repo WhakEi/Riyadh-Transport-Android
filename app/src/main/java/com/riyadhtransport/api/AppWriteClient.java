@@ -19,10 +19,10 @@ public class AppWriteClient {
      */
     public static void init(Context context) {
         if (client == null) {
-            // MODIFIED: Do not chain these calls. This is the correct fix.
+            // Create client with builder pattern to avoid ambiguity
             client = new Client(context.getApplicationContext());
-            client.setEndpoint(ENDPOINT);
-            client.setProject(PROJECT_ID);
+            client = client.setEndpoint(ENDPOINT);
+            client = client.setProject(PROJECT_ID);
 
             databases = new Databases(client);
         }

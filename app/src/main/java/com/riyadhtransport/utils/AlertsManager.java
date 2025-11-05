@@ -133,11 +133,8 @@ public class AlertsManager {
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing Appwrite response: " + e.getMessage());
                         mainHandler.post(() -> handleApiError(context, callback, e.getMessage()));
-                        // MODIFIED: Add required 'return null;' inside the catch block
-                        return null;
                     }
 
-                    // THIS IS THE FIX for the "bad return type" error
                     return null;
                 }, (Throwable error) -> {
                     // onError: Runs on a background thread
