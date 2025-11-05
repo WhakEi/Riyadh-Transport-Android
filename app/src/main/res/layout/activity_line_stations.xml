@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background">
 
-    <!-- Line Title -->
     <TextView
         android:id="@+id/line_title"
         android:layout_width="match_parent"
@@ -16,18 +14,19 @@
         android:textColor="@color/text_primary"
         android:gravity="center" />
 
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="24dp"
+        android:layout_below="@id/line_title"
+        android:layout_centerHorizontal="true"
         android:visibility="gone" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/progress_bar"
+        android:layout_alignParentBottom="true"
         android:fillViewport="true">
 
         <LinearLayout
@@ -36,7 +35,6 @@
             android:orientation="vertical"
             android:paddingBottom="16dp">
 
-            <!-- Alerts Section -->
             <LinearLayout
                 android:id="@+id/alerts_container"
                 android:layout_width="match_parent"
@@ -60,22 +58,18 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/alerts_recycler"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <!-- Stations List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/stations_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="16dp"
-                android:nestedScrollingEnabled="false"
                 android:clipToPadding="false" />
 
         </LinearLayout>
     </ScrollView>
 
-</LinearLayout>
+</RelativeLayout>
