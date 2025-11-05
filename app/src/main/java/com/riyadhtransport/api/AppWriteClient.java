@@ -1,47 +1,50 @@
 package com.riyadhtransport.api;
 
-import android.content.Context;
-import io.appwrite.Client;
-import io.appwrite.services.Databases;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Client for AppWrite REST API using Retrofit
+ */
 public class AppWriteClient {
-    private static Client client = null;
-    private static Databases databases = null;
-
-    // AppWrite configuration - Update these with your actual values
-    private static final String ENDPOINT = "https://fra.cloud.appwrite.io/v1";
-    private static final String PROJECT_ID = "68f141dd000f83849c21";
-    private static final String DATABASE_ID = "68f146de0013ba3e183a";
+    // AppWrite configuration
+    private static final String ENDPOINT = "https://fra.cloud.appwrite.io/v1/";
+    public static final String PROJECT_ID = "68f141dd000f83849c21";
+    public static final String DATABASE_ID = "68f146de0013ba3e183a";
     public static final String ALERTS_COLLECTION_ID = "emptt";
 
-    /**
-     * Initialize AppWrite client
-     */
-    public static void init(Context context) {
-        if (client == null) {
-            // MODIFIED: Use the constructor workaround you found.
-            // This avoids the ambiguous setEndpoint() method entirely.
-            client = new Client(context.getApplicationContext(), ENDPOINT);
-            client.setProject(PROJECT_ID); // .setProject() is not ambiguous
+    private static Retrofit retrofit = null;
+    private static AppWriteApiService apiService = null;
 
-            databases = new Databases(client);
+    /**
+     * Get Retrofit client for AppWrite
+     */
+    private static Retrofit getClient() {
+        if (retrofit == null) {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build();
+
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(ENDPOINT)
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
         }
+        return retrofit;
     }
 
     /**
-     * Get the databases service
+     * Get AppWrite API service
      */
-    public static Databases getDatabases(Context context) {
-        if (databases == null) {
-            init(context);
+    public static AppWriteApiService getApiService() {
+        if (apiService == null) {
+            apiService = getClient().create(AppWriteApiService.class);
         }
-        return databases;
-    }
-
-    /**
-     * Get the database ID
-     */
-    public static String getDatabaseId() {
-        return DATABASE_ID;
+        return apiService;
     }
 }

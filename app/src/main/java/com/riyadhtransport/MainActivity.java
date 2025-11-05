@@ -61,9 +61,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize ApiClient with context AFTER loading language preference
         // This ensures the Arabic locale is properly detected
         com.riyadhtransport.api.ApiClient.init(this);
-        
-        // Initialize AppWrite client for alerts
-        com.riyadhtransport.api.AppWriteClient.init(this);
 
         // Configure OSMDroid
         Context ctx = getApplicationContext();

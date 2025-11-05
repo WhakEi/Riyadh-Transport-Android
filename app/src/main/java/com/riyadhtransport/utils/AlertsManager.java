@@ -2,27 +2,20 @@ package com.riyadhtransport.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import kotlin.Unit;
 import com.riyadhtransport.api.AppWriteClient;
 import com.riyadhtransport.models.LineAlert;
-
-// Appwrite Imports
-import io.appwrite.Client; // This import is no longer strictly needed here, but safe to keep
-import io.appwrite.exceptions.AppwriteException;
-import io.appwrite.coroutines.CoroutineCallback;
-import io.appwrite.services.Databases;
-import io.appwrite.models.DocumentList;
-import io.appwrite.models.Document;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AlertsManager {
     private static final String TAG = "AlertsManager";
@@ -72,100 +65,68 @@ public class AlertsManager {
     }
 
     /**
-     * Fetch alerts from AppWrite
+     * Fetch alerts from AppWrite using REST API
      */
     private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
-        Log.d(TAG, "Fetching alerts from AppWrite...");
+        Log.d(TAG, "Fetching alerts from AppWrite REST API...");
 
-        // Handler for main thread operations
-        Handler mainHandler = new Handler(Looper.getMainLooper());
+        // Call AppWrite REST API using Retrofit
+        AppWriteClient.getApiService().listDocuments(
+                AppWriteClient.DATABASE_ID,
+                AppWriteClient.ALERTS_COLLECTION_ID,
+                AppWriteClient.PROJECT_ID
+        ).enqueue(new Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(@NonNull Call<Map<String, Object>> call, @NonNull Response<Map<String, Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        Map<String, Object> responseBody = response.body();
+                        List<LineAlert> alerts = new ArrayList<>();
 
-        try {
-            // Use your AppWriteClient helper
-            Databases databases = AppWriteClient.getDatabases(context);
-            String databaseId = AppWriteClient.getDatabaseId();
-            String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
+                        // Parse documents from AppWrite response
+                        Object documentsObj = responseBody.get("documents");
+                        if (documentsObj instanceof List) {
+                            List<?> documentsList = (List<?>) documentsObj;
 
-            // Call Appwrite listDocuments with coroutine callbacks (using anonymous classes, not lambdas)
-            databases.listDocuments(
-                databaseId,
-                collectionId,
-                new CoroutineCallback<DocumentList>() {
-                    @Override
-                    public Unit invoke(DocumentList documentList) {
-                        try {
-                            List<LineAlert> alerts = new ArrayList<>();
+                            for (Object docObj : documentsList) {
+                                if (docObj instanceof Map) {
+                                    Map<String, Object> doc = (Map<String, Object>) docObj;
 
-                            for (Object docObj : documentList.getDocuments()) {
-                                if (docObj instanceof Document) {
-                                    Document doc = (Document) docObj;
-                                    Map<String, Object> data = (Map<String, Object>) doc.getData();
-
-                                    String title = data.containsKey("title") ? data.get("title").toString() : "";
-                                    String message = data.containsKey("message") ? data.get("message").toString() : "";
-                                    String createdAt = doc.getCreatedAt();
+                                    String title = doc.containsKey("title") ? doc.get("title").toString() : "";
+                                    String message = doc.containsKey("message") ? doc.get("message").toString() : "";
+                                    String createdAt = doc.containsKey("$createdAt") ? doc.get("$createdAt").toString() : "";
 
                                     if (!title.isEmpty()) {
                                         alerts.add(new LineAlert(title, message, createdAt));
                                     }
                                 }
                             }
-
-                            Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
-                            cacheAlerts(context, alerts);
-
-                            // Run success callback on main thread using explicit Runnable
-                            mainHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onSuccess(alerts);
-                                }
-                            });
-
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error processing Appwrite response: " + e.getMessage());
-                            final String errorMsg = e.getMessage();
-                            mainHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    handleApiError(context, callback, errorMsg);
-                                }
-                            });
                         }
 
-                        // Required by CoroutineCallback (returns Unit)
-                        return Unit.INSTANCE;
+                        Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
+
+                        // Cache the alerts
+                        cacheAlerts(context, alerts);
+
+                        // Return success
+                        callback.onSuccess(alerts);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing AppWrite response: " + e.getMessage());
+                        handleApiError(context, callback, e.getMessage());
                     }
-
-                    @Override
-                    public Unit invoke(Throwable error) {
-                        Log.e(TAG, "Error fetching alerts from AppWrite: " + error.getMessage());
-
-                        // Run error handler on main thread using explicit Runnable
-                        final String errorMsg = error.getMessage();
-                        mainHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                handleApiError(context, callback, errorMsg);
-                            }
-                        });
-
-                        // Return Unit.INSTANCE
-                        return Unit.INSTANCE;
-                    }
+                } else {
+                    Log.e(TAG, "AppWrite API error: " + response.code());
+                    handleApiError(context, callback, "API returned error code: " + response.code());
                 }
-            );
+            }
 
-        } catch (AppwriteException e) {
-            Log.e(TAG, "Error fetching alerts from AppWrite (outer): " + e.getMessage());
-            final String errorMsg = e.getMessage();
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    handleApiError(context, callback, errorMsg);
-                }
-            });
-        }
+            @Override
+            public void onFailure(@NonNull Call<Map<String, Object>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Network error fetching alerts from AppWrite: " + t.getMessage());
+                handleApiError(context, callback, t.getMessage());
+            }
+        });
     }
 
 
