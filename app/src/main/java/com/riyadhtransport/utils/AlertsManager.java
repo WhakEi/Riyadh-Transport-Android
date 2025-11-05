@@ -5,15 +5,16 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.riyadhtransport.api.ApiClient;
+import com.riyadhtransport.api.AppWriteClient;
 import com.riyadhtransport.models.LineAlert;
+import io.appwrite.services.Databases;
+import io.appwrite.models.DocumentList;
+import io.appwrite.models.Document;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AlertsManager {
     private static final String TAG = "AlertsManager";
@@ -51,71 +52,59 @@ public class AlertsManager {
     }
     
     /**
-     * Fetch alerts from the API
+     * Fetch alerts from AppWrite
      */
     private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
-        Log.d(TAG, "Fetching alerts from API...");
+        Log.d(TAG, "Fetching alerts from AppWrite...");
         
-        ApiClient.getApiService().getAlerts().enqueue(new Callback<Map<String, Object>>() {
-            @Override
-            public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+        // Use executor to run AppWrite call on background thread
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                // Get AppWrite databases service
+                Databases databases = AppWriteClient.getDatabases(context);
+                String databaseId = AppWriteClient.getDatabaseId();
+                String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
+                
+                // Fetch documents from AppWrite
+                DocumentList documentList = databases.listDocuments(
+                    databaseId,
+                    collectionId
+                );
+                
+                // Parse alerts from documents
+                List<LineAlert> alerts = new ArrayList<>();
+                List<Document> documents = documentList.getDocuments();
+                
+                for (Document doc : documents) {
                     try {
-                        Map<String, Object> responseBody = response.body();
+                        // Extract fields from document
+                        String title = doc.getData().containsKey("title") ? 
+                            doc.getData().get("title").toString() : "";
+                        String message = doc.getData().containsKey("message") ? 
+                            doc.getData().get("message").toString() : "";
+                        String createdAt = doc.getData().containsKey("$createdAt") ? 
+                            doc.getData().get("$createdAt").toString() : "";
                         
-                        // Parse alerts from response
-                        List<LineAlert> alerts = new ArrayList<>();
-                        
-                        // Assuming the response has a "documents" or "alerts" array
-                        Object documentsObj = responseBody.get("documents");
-                        if (documentsObj == null) {
-                            documentsObj = responseBody.get("alerts");
+                        if (!title.isEmpty()) {
+                            LineAlert alert = new LineAlert(title, message, createdAt);
+                            alerts.add(alert);
                         }
-                        
-                        if (documentsObj instanceof List) {
-                            List<?> documentsList = (List<?>) documentsObj;
-                            Gson gson = new Gson();
-                            
-                            for (Object doc : documentsList) {
-                                try {
-                                    // Convert each document to LineAlert
-                                    String json = gson.toJson(doc);
-                                    LineAlert alert = gson.fromJson(json, LineAlert.class);
-                                    if (alert != null && alert.getTitle() != null && !alert.getTitle().isEmpty()) {
-                                        alerts.add(alert);
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error parsing alert: " + e.getMessage());
-                                }
-                            }
-                        }
-                        
-                        Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts");
-                        
-                        // Cache the alerts
-                        cacheAlerts(context, alerts);
-                        
-                        callback.onSuccess(alerts);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error parsing alerts response: " + e.getMessage());
-                        callback.onError("Failed to parse alerts: " + e.getMessage());
-                    }
-                } else {
-                    Log.e(TAG, "API error: " + response.code());
-                    // Try to use cached alerts as fallback
-                    List<LineAlert> cachedAlerts = getCachedAlerts(context);
-                    if (!cachedAlerts.isEmpty()) {
-                        Log.d(TAG, "Using cached alerts as fallback");
-                        callback.onSuccess(cachedAlerts);
-                    } else {
-                        callback.onError("Failed to fetch alerts");
+                        Log.e(TAG, "Error parsing alert document: " + e.getMessage());
                     }
                 }
-            }
-            
-            @Override
-            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                Log.e(TAG, "Network error fetching alerts: " + t.getMessage());
+                
+                Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
+                
+                // Cache the alerts
+                cacheAlerts(context, alerts);
+                
+                // Return results on main thread
+                callback.onSuccess(alerts);
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Error fetching alerts from AppWrite: " + e.getMessage());
                 
                 // Try to use cached alerts as fallback
                 List<LineAlert> cachedAlerts = getCachedAlerts(context);
@@ -123,8 +112,10 @@ public class AlertsManager {
                     Log.d(TAG, "Using cached alerts as fallback");
                     callback.onSuccess(cachedAlerts);
                 } else {
-                    callback.onError("Network error: " + t.getMessage());
+                    callback.onError("Failed to fetch alerts: " + e.getMessage());
                 }
+            } finally {
+                executor.shutdown();
             }
         });
     }
