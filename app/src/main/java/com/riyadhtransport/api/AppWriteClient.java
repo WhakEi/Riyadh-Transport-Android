@@ -19,10 +19,10 @@ public class AppWriteClient {
      */
     public static void init(Context context) {
         if (client == null) {
-            // Create client with builder pattern to avoid ambiguity
-            client = new Client(context.getApplicationContext());
-            client = client.setEndpoint(ENDPOINT);
-            client = client.setProject(PROJECT_ID);
+            // MODIFIED: Use the constructor workaround you found.
+            // This avoids the ambiguous setEndpoint() method entirely.
+            client = new Client(context.getApplicationContext(), ENDPOINT);
+            client.setProject(PROJECT_ID); // .setProject() is not ambiguous
 
             databases = new Databases(client);
         }
