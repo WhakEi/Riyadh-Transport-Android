@@ -7,26 +7,27 @@ import io.appwrite.services.Databases;
 public class AppWriteClient {
     private static Client client = null;
     private static Databases databases = null;
-    
+
     // AppWrite configuration - Update these with your actual values
-    private static final String ENDPOINT = "https://cloud.appwrite.io/v1";
-    private static final String PROJECT_ID = "YOUR_PROJECT_ID"; // TODO: Replace with actual project ID
-    private static final String DATABASE_ID = "YOUR_DATABASE_ID"; // TODO: Replace with actual database ID
-    public static final String ALERTS_COLLECTION_ID = "YOUR_ALERTS_COLLECTION_ID"; // TODO: Replace with actual collection ID
-    
+    private static final String ENDPOINT = "https://fra.cloud.appwrite.io/v1";
+    private static final String PROJECT_ID = "68f141dd000f83849c21";
+    private static final String DATABASE_ID = "68f146de0013ba3e183a";
+    public static final String ALERTS_COLLECTION_ID = "emptt";
+
     /**
      * Initialize AppWrite client
      */
     public static void init(Context context) {
         if (client == null) {
-            client = new Client(context)
-                    .setEndpoint(ENDPOINT)
-                    .setProject(PROJECT_ID);
-            
+            // MODIFIED: Do not chain these calls. This is the correct fix.
+            client = new Client(context.getApplicationContext());
+            client.setEndpoint(ENDPOINT);
+            client.setProject(PROJECT_ID);
+
             databases = new Databases(client);
         }
     }
-    
+
     /**
      * Get the databases service
      */
@@ -36,7 +37,7 @@ public class AppWriteClient {
         }
         return databases;
     }
-    
+
     /**
      * Get the database ID
      */
