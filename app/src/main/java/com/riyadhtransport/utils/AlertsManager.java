@@ -74,81 +74,96 @@ public class AlertsManager {
     /**
      * Fetch alerts from AppWrite
      */
-private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
-    Log.d(TAG, "Fetching alerts from AppWrite...");
+    private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
+        Log.d(TAG, "Fetching alerts from AppWrite...");
 
-    // Handler for main thread operations
-    Handler mainHandler = new Handler(Looper.getMainLooper());
+        // Handler for main thread operations
+        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    try {
-        // Use your AppWriteClient helper
-        Databases databases = AppWriteClient.getDatabases(context);
-        String databaseId = AppWriteClient.getDatabaseId();
-        String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
+        try {
+            // Use your AppWriteClient helper
+            Databases databases = AppWriteClient.getDatabases(context);
+            String databaseId = AppWriteClient.getDatabaseId();
+            String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
 
-        // Call Appwrite listDocuments with coroutine callbacks
-        databases.listDocuments(
-            databaseId,
-            collectionId,
-            new CoroutineCallback<DocumentList>(
-                (DocumentList documentList) -> {
-                    try {
-                        List<LineAlert> alerts = new ArrayList<>();
+            // Call Appwrite listDocuments with coroutine callbacks
+            databases.listDocuments(
+                databaseId,
+                collectionId,
+                new CoroutineCallback<DocumentList>(
+                    (DocumentList documentList) -> {
+                        try {
+                            List<LineAlert> alerts = new ArrayList<>();
 
-                        for (Object docObj : documentList.getDocuments()) {
-                            if (docObj instanceof Document) {
-                                Document doc = (Document) docObj;
-                                Map<String, Object> data = (Map<String, Object>) doc.getData();
+                            for (Object docObj : documentList.getDocuments()) {
+                                if (docObj instanceof Document) {
+                                    Document doc = (Document) docObj;
+                                    Map<String, Object> data = (Map<String, Object>) doc.getData();
 
-                                String title = data.containsKey("title") ? data.get("title").toString() : "";
-                                String message = data.containsKey("message") ? data.get("message").toString() : "";
-                                String createdAt = doc.getCreatedAt();
+                                    String title = data.containsKey("title") ? data.get("title").toString() : "";
+                                    String message = data.containsKey("message") ? data.get("message").toString() : "";
+                                    String createdAt = doc.getCreatedAt();
 
-                                if (!title.isEmpty()) {
-                                    alerts.add(new LineAlert(title, message, createdAt));
+                                    if (!title.isEmpty()) {
+                                        alerts.add(new LineAlert(title, message, createdAt));
+                                    }
                                 }
                             }
+
+                            Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
+                            cacheAlerts(context, alerts);
+
+                            // Run success callback on main thread using explicit Runnable
+                            mainHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onSuccess(alerts);
+                                }
+                            });
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error processing Appwrite response: " + e.getMessage());
+                            final String errorMsg = e.getMessage();
+                            mainHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    handleApiError(context, callback, errorMsg);
+                                }
+                            });
                         }
 
-                        Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
-                        cacheAlerts(context, alerts);
+                        // Required by CoroutineCallback (returns Unit)
+                        return Unit.INSTANCE;
+                    },
+                    (Throwable error) -> {
+                        Log.e(TAG, "Error fetching alerts from AppWrite: " + error.getMessage());
 
-                        // Run success callback on main thread
-                        mainHandler.post(() -> callback.onSuccess(alerts));
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing Appwrite response: " + e.getMessage());
-                        mainHandler.post(() -> {
-                            handleApiError(context, callback, e.getMessage());
+                        // Run error handler on main thread using explicit Runnable
+                        final String errorMsg = error.getMessage();
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                handleApiError(context, callback, errorMsg);
+                            }
                         });
-                        return null;
 
+                        // Return Unit.INSTANCE
+                        return Unit.INSTANCE;
                     }
+                )
+            );
 
-                    // ✅ Required by CoroutineCallback (returns Unit, not null)
-                    return Unit.INSTANCE;
-                },
-                (Throwable error) -> {
-                    Log.e(TAG, "Error fetching alerts from AppWrite: " + error.getMessage());
-
-                    // Run error handler on main thread
-                    mainHandler.post(() -> {
-                        handleApiError(context, callback, error.getMessage());
-                    });
-
-                    // ✅ Return Unit.INSTANCE instead of null
-                    return Unit.INSTANCE;
+        } catch (AppwriteException e) {
+            Log.e(TAG, "Error fetching alerts from AppWrite (outer): " + e.getMessage());
+            final String errorMsg = e.getMessage();
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    handleApiError(context, callback, errorMsg);
                 }
-            )
-        );
-
-    } catch (AppwriteException e) {
-        Log.e(TAG, "Error fetching alerts from AppWrite (outer): " + e.getMessage());
-        mainHandler.post(() -> {
-            handleApiError(context, callback, e.getMessage());
-        });
+            });
+        }
     }
-}
 
 
     /**
