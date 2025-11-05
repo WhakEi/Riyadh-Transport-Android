@@ -7,7 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-// MODIFIED: Import your new AppWriteClient
+import kotlin.Unit;
 import com.riyadhtransport.api.AppWriteClient;
 import com.riyadhtransport.models.LineAlert;
 
@@ -74,84 +74,82 @@ public class AlertsManager {
     /**
      * Fetch alerts from AppWrite
      */
-    private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
-        Log.d(TAG, "Fetching alerts from AppWrite...");
+private static void fetchAlertsFromApi(Context context, AlertsCallback callback) {
+    Log.d(TAG, "Fetching alerts from AppWrite...");
 
-        // NEW: Create a handler for the main thread
-        Handler mainHandler = new Handler(Looper.getMainLooper());
+    // Handler for main thread operations
+    Handler mainHandler = new Handler(Looper.getMainLooper());
 
-        try {
-            // MODIFIED: Use your AppWriteClient class
-            Databases databases = AppWriteClient.getDatabases(context);
-            // --- End of Direct Initialization ---
+    try {
+        // Use your AppWriteClient helper
+        Databases databases = AppWriteClient.getDatabases(context);
+        String databaseId = AppWriteClient.getDatabaseId();
+        String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
 
-            // MODIFIED: Use your AppWriteClient class
-            String databaseId = AppWriteClient.getDatabaseId();
-            String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
-
-            // MODIFIED: This is the correct way to call listDocuments for SDK 8.1.0
-            databases.listDocuments(
-                databaseId,
-                collectionId,
-                new CoroutineCallback<DocumentList>((DocumentList documentList) -> {
-                    // onSuccess: Runs on a background thread
+        // Call Appwrite listDocuments with coroutine callbacks
+        databases.listDocuments(
+            databaseId,
+            collectionId,
+            new CoroutineCallback<DocumentList>(
+                (DocumentList documentList) -> {
                     try {
                         List<LineAlert> alerts = new ArrayList<>();
 
-                        // MODIFIED (Fix 3): Iterate over Object and cast to Document
                         for (Object docObj : documentList.getDocuments()) {
                             if (docObj instanceof Document) {
                                 Document doc = (Document) docObj;
-                                try {
-                                    // Cast getData() to a Map
-                                    Map<String, Object> data = (Map<String, Object>) doc.getData();
+                                Map<String, Object> data = (Map<String, Object>) doc.getData();
 
-                                    // Read from the 'data' map
-                                    String title = data.containsKey("title") ?
-                                        data.get("title").toString() : "";
-                                    String message = data.containsKey("message") ?
-                                        data.get("message").toString() : "";
+                                String title = data.containsKey("title") ? data.get("title").toString() : "";
+                                String message = data.containsKey("message") ? data.get("message").toString() : "";
+                                String createdAt = doc.getCreatedAt();
 
-                                    // Get createdAt from the document itself
-                                    String createdAt = doc.getCreatedAt();
-
-                                    if (!title.isEmpty()) {
-                                        LineAlert alert = new LineAlert(title, message, createdAt);
-                                        alerts.add(alert);
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error parsing alert document: " + e.getMessage());
+                                if (!title.isEmpty()) {
+                                    alerts.add(new LineAlert(title, message, createdAt));
                                 }
                             }
                         }
+
                         Log.d(TAG, "Successfully fetched " + alerts.size() + " alerts from AppWrite");
                         cacheAlerts(context, alerts);
 
-                        // Return results on main thread
+                        // Run success callback on main thread
                         mainHandler.post(() -> callback.onSuccess(alerts));
 
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing Appwrite response: " + e.getMessage());
-                        mainHandler.post(() -> handleApiError(context, callback, e.getMessage()));
+                        mainHandler.post(() -> {
+                            handleApiError(context, callback, e.getMessage());
+                        });
+                        return null;
+
                     }
 
-                    return null;
-                }, (Throwable error) -> {
-                    // onError: Runs on a background thread
+                    // ✅ Required by CoroutineCallback (returns Unit, not null)
+                    return Unit.INSTANCE;
+                },
+                (Throwable error) -> {
                     Log.e(TAG, "Error fetching alerts from AppWrite: " + error.getMessage());
-                    // Return results on main thread
-                    mainHandler.post(() -> handleApiError(context, callback, error.getMessage()));
 
-                    // THIS IS THE FIX for the "bad return type" error
-                    return null;
-                })
-            );
+                    // Run error handler on main thread
+                    mainHandler.post(() -> {
+                        handleApiError(context, callback, error.getMessage());
+                    });
 
-        } catch (AppwriteException e) {
-            Log.e(TAG, "Error fetching alerts from AppWrite (outer): " + e.getMessage());
-            mainHandler.post(() -> handleApiError(context, callback, e.getMessage()));
-        }
+                    // ✅ Return Unit.INSTANCE instead of null
+                    return Unit.INSTANCE;
+                }
+            )
+        );
+
+    } catch (AppwriteException e) {
+        Log.e(TAG, "Error fetching alerts from AppWrite (outer): " + e.getMessage());
+        mainHandler.post(() -> {
+            handleApiError(context, callback, e.getMessage());
+        });
     }
+}
+
 
     /**
      * Get line-specific alerts for a given line number
