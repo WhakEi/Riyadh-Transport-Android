@@ -86,12 +86,13 @@ public class AlertsManager {
             String databaseId = AppWriteClient.getDatabaseId();
             String collectionId = AppWriteClient.ALERTS_COLLECTION_ID;
 
-            // Call Appwrite listDocuments with coroutine callbacks
+            // Call Appwrite listDocuments with coroutine callbacks (using anonymous classes, not lambdas)
             databases.listDocuments(
                 databaseId,
                 collectionId,
-                new CoroutineCallback<DocumentList>(
-                    (DocumentList documentList) -> {
+                new CoroutineCallback<DocumentList>() {
+                    @Override
+                    public Unit invoke(DocumentList documentList) {
                         try {
                             List<LineAlert> alerts = new ArrayList<>();
 
@@ -134,8 +135,10 @@ public class AlertsManager {
 
                         // Required by CoroutineCallback (returns Unit)
                         return Unit.INSTANCE;
-                    },
-                    (Throwable error) -> {
+                    }
+
+                    @Override
+                    public Unit invoke(Throwable error) {
                         Log.e(TAG, "Error fetching alerts from AppWrite: " + error.getMessage());
 
                         // Run error handler on main thread using explicit Runnable
@@ -150,7 +153,7 @@ public class AlertsManager {
                         // Return Unit.INSTANCE
                         return Unit.INSTANCE;
                     }
-                )
+                }
             );
 
         } catch (AppwriteException e) {
