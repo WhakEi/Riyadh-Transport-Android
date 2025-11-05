@@ -6,6 +6,7 @@ public class SearchResult {
     private double latitude;
     private double longitude;
     private boolean isStation;
+    private String type; // "history", "favorite", "search"
     
     public SearchResult() {
     }
@@ -48,5 +49,13 @@ public class SearchResult {
     
     public void setStation(boolean station) {
         isStation = station;
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public void setType(String type) {
+        this.type = type;
     }
 }

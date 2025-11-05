@@ -113,6 +113,8 @@
     <string name="removed_from_favorites">Removed from favorites</string>
     <string name="no_favorites">No favorites yet</string>
     <string name="no_favorites_message">Tap the star icon on stations or locations to add them to your favorites</string>
+    <string name="favorite">Favorite</string>
+    <string name="recent_search">Recent search</string>
 
     <!-- Route Instructions -->
     <string name="take_bus">Take Bus %1$s and disembark at %2$s</string>
