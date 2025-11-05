@@ -50,4 +50,7 @@ public interface TransportApiService {
     
     @POST("refineTerminus")
     Call<Map<String, Object>> refineTerminus(@Body Map<String, String> request);
+    
+    @GET("alerts")
+    Call<Map<String, Object>> getAlerts();
 }

@@ -14,8 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.riyadhtransport.adapters.StationListAdapter;
+import com.riyadhtransport.adapters.AlertAdapter;
 import com.riyadhtransport.api.ApiClient;
+import com.riyadhtransport.models.LineAlert;
 import com.riyadhtransport.utils.LineColorHelper;
+import com.riyadhtransport.utils.AlertsManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +36,10 @@ public class LineStationsActivity extends AppCompatActivity {
     private String lineId;
     private String lineName;
     private String lineType;
+    
+    private LinearLayout alertsContainer;
+    private RecyclerView alertsRecycler;
+    private AlertAdapter alertAdapter;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +61,8 @@ public class LineStationsActivity extends AppCompatActivity {
         titleView = findViewById(R.id.line_title);
         stationsRecycler = findViewById(R.id.stations_list);
         progressBar = findViewById(R.id.progress_bar);
+        alertsContainer = findViewById(R.id.alerts_container);
+        alertsRecycler = findViewById(R.id.alerts_recycler);
         
         // Set title
         titleView.setText(lineName);
@@ -75,6 +84,11 @@ public class LineStationsActivity extends AppCompatActivity {
         stationsRecycler.setLayoutManager(new LinearLayoutManager(this));
         stationsRecycler.setAdapter(adapter);
         
+        // Setup Alerts RecyclerView
+        alertAdapter = new AlertAdapter();
+        alertsRecycler.setLayoutManager(new LinearLayoutManager(this));
+        alertsRecycler.setAdapter(alertAdapter);
+        
         // Load stations from intent or fetch from API
         ArrayList<String> stations = getIntent().getStringArrayListExtra("stations");
         if (stations != null && !stations.isEmpty()) {
@@ -83,6 +97,37 @@ public class LineStationsActivity extends AppCompatActivity {
         } else {
             loadLineStations();
         }
+        
+        // Load alerts for this line
+        loadLineSpecificAlerts();
+    }
+    
+    private void loadLineSpecificAlerts() {
+        if (lineId == null || lineId.isEmpty()) {
+            alertsContainer.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Fetch alerts for this specific line
+        AlertsManager.getAlertsForLine(this, lineId, new AlertsManager.AlertsCallback() {
+            @Override
+            public void onSuccess(List<LineAlert> alerts) {
+                runOnUiThread(() -> {
+                    if (!alerts.isEmpty()) {
+                        alertAdapter.setAlerts(alerts);
+                        alertsContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        alertsContainer.setVisibility(View.GONE);
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String message) {
+                android.util.Log.e("LineStationsActivity", "Error loading alerts: " + message);
+                runOnUiThread(() -> alertsContainer.setVisibility(View.GONE));
+            }
+        });
     }
     
     private void loadLineStations() {

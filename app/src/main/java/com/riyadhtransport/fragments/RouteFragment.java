@@ -30,6 +30,9 @@ import com.riyadhtransport.models.Route;
 import com.riyadhtransport.models.RouteSegment;
 import com.riyadhtransport.utils.LocationHelper;
 import com.riyadhtransport.utils.JourneyTimeCalculator;
+import com.riyadhtransport.utils.AlertsManager;
+import com.riyadhtransport.models.LineAlert;
+import com.riyadhtransport.adapters.AlertAdapter;
 import android.os.Handler;
 import android.os.Looper;
 import com.google.gson.Gson;
@@ -72,6 +75,10 @@ public class RouteFragment extends Fragment {
     private Handler refreshHandler;
     private Runnable refreshRunnable;
     
+    private LinearLayout alertsContainer;
+    private RecyclerView alertsRecycler;
+    private AlertAdapter alertAdapter;
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -93,11 +100,18 @@ public class RouteFragment extends Fragment {
         routeDetailsContainer = view.findViewById(R.id.route_details_container);
         routeSegmentsRecycler = view.findViewById(R.id.route_segments_recycler);
         progressBar = view.findViewById(R.id.progress_bar);
+        alertsContainer = view.findViewById(R.id.alerts_container);
+        alertsRecycler = view.findViewById(R.id.alerts_recycler);
         
         // Setup RecyclerView
         segmentAdapter = new RouteSegmentAdapter();
         routeSegmentsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         routeSegmentsRecycler.setAdapter(segmentAdapter);
+        
+        // Setup Alerts RecyclerView
+        alertAdapter = new AlertAdapter();
+        alertsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        alertsRecycler.setAdapter(alertAdapter);
         
         // Setup listeners
         findRouteButton.setOnClickListener(v -> findRoute());
@@ -115,6 +129,36 @@ public class RouteFragment extends Fragment {
         
         // Get current location
         getCurrentLocation();
+        
+        // Load general alerts
+        loadGeneralAlerts();
+    }
+    
+    private void loadGeneralAlerts() {
+        AlertsManager.getGeneralAlerts(requireContext(), new AlertsManager.AlertsCallback() {
+            @Override
+            public void onSuccess(List<LineAlert> alerts) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (!alerts.isEmpty()) {
+                            alertAdapter.setAlerts(alerts);
+                            alertsContainer.setVisibility(View.VISIBLE);
+                        } else {
+                            alertsContainer.setVisibility(View.GONE);
+                        }
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String message) {
+                android.util.Log.e(TAG, "Error loading alerts: " + message);
+                // Hide alerts container on error
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> alertsContainer.setVisibility(View.GONE));
+                }
+            }
+        });
     }
     
     private void loadStations() {

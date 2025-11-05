@@ -151,4 +151,9 @@
     <string name="towards">باتجاه %s</string>
     <string name="take_bus_towards">اركب الحافلة %1$s باتجاه %2$s وانزل في %3$s</string>
     <string name="take_metro_towards">اركب %1$s باتجاه %2$s وانزل في %3$s</string>
+    
+    <!-- Alerts -->
+    <string name="expand_collapse_alert">توسيع أو طي التنبيه</string>
+    <string name="no_alerts">لا توجد تنبيهات في الوقت الحالي</string>
+    <string name="service_alerts">تنبيهات الخدمة</string>
 </resources>

@@ -69,6 +69,30 @@
         android:text="@string/use_my_location"
         app:cornerRadius="8dp" />
 
+    <!-- Alerts Section (for general alerts) -->
+    <LinearLayout
+        android:id="@+id/alerts_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/service_alerts"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/alerts_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+    </LinearLayout>
+
     <!-- Route Details Container -->
     <LinearLayout
         android:id="@+id/route_details_container"

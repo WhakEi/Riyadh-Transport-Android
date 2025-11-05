@@ -150,5 +150,10 @@
     <string name="arriving_at_time">%s</string>
     <string name="towards">towards %s</string>
     <string name="take_bus_towards">Take Bus %1$s towards %2$s and disembark at %3$s</string>
+    
+    <!-- Alerts -->
+    <string name="expand_collapse_alert">Expand or collapse alert</string>
+    <string name="no_alerts">No alerts at this time</string>
+    <string name="service_alerts">Service Alerts</string>
     <string name="take_metro_towards">Take the %1$s towards %2$s and disembark at %3$s</string>
 </resources>

@@ -12,12 +12,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.riyadhtransport.adapters.LineAdapter;
+import com.riyadhtransport.adapters.AlertAdapter;
 import com.riyadhtransport.models.Arrival;
 import com.riyadhtransport.models.Line;
+import com.riyadhtransport.models.LineAlert;
 import com.riyadhtransport.utils.LineColorHelper;
 import com.riyadhtransport.utils.LiveArrivalManager;
+import com.riyadhtransport.utils.AlertsManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class StationLinesActivity extends AppCompatActivity {
     
@@ -32,6 +37,10 @@ public class StationLinesActivity extends AppCompatActivity {
     
     private Handler refreshHandler;
     private Runnable refreshRunnable;
+    
+    private LinearLayout alertsContainer;
+    private RecyclerView alertsRecycler;
+    private AlertAdapter alertAdapter;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +60,8 @@ public class StationLinesActivity extends AppCompatActivity {
         // Initialize views
         stationNameView = findViewById(R.id.station_name);
         linesRecycler = findViewById(R.id.lines_list);
+        alertsContainer = findViewById(R.id.alerts_container);
+        alertsRecycler = findViewById(R.id.alerts_recycler);
         
         // Set station name
         stationNameView.setText(stationName);
@@ -59,6 +70,11 @@ public class StationLinesActivity extends AppCompatActivity {
         adapter = new LineAdapter(this::onLineClick);
         linesRecycler.setLayoutManager(new LinearLayoutManager(this));
         linesRecycler.setAdapter(adapter);
+        
+        // Setup Alerts RecyclerView
+        alertAdapter = new AlertAdapter();
+        alertsRecycler.setLayoutManager(new LinearLayoutManager(this));
+        alertsRecycler.setAdapter(alertAdapter);
         
         // Build lines list
         allLines = new ArrayList<>();
@@ -78,8 +94,66 @@ public class StationLinesActivity extends AppCompatActivity {
         
         adapter.setLines(allLines);
         
+        // Load alerts for lines at this station
+        loadLineSpecificAlerts();
+        
         // Start live arrival updates
         setupAutoRefresh();
+    }
+    
+    private void loadLineSpecificAlerts() {
+        if (allLines == null || allLines.isEmpty()) {
+            alertsContainer.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Collect all line numbers at this station
+        Set<String> lineNumbers = new HashSet<>();
+        for (Line line : allLines) {
+            String lineId = line.getId();
+            if (lineId != null && !lineId.isEmpty()) {
+                lineNumbers.add(lineId);
+            }
+        }
+        
+        if (lineNumbers.isEmpty()) {
+            alertsContainer.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Fetch all alerts and filter for the lines at this station
+        AlertsManager.getAlerts(this, new AlertsManager.AlertsCallback() {
+            @Override
+            public void onSuccess(List<LineAlert> allAlerts) {
+                runOnUiThread(() -> {
+                    List<LineAlert> relevantAlerts = new ArrayList<>();
+                    for (LineAlert alert : allAlerts) {
+                        if (alert.isLineSpecific()) {
+                            // Check if this alert applies to any line at this station
+                            for (String lineNumber : lineNumbers) {
+                                if (alert.appliesToLine(lineNumber)) {
+                                    relevantAlerts.add(alert);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (!relevantAlerts.isEmpty()) {
+                        alertAdapter.setAlerts(relevantAlerts);
+                        alertsContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        alertsContainer.setVisibility(View.GONE);
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String message) {
+                Log.e(TAG, "Error loading alerts: " + message);
+                runOnUiThread(() -> alertsContainer.setVisibility(View.GONE));
+            }
+        });
     }
     
     private void setupAutoRefresh() {
