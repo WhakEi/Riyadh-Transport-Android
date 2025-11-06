@@ -22,7 +22,7 @@ struct RouteView: View {
     @State private var endCoordinate: CLLocationCoordinate2D?
     @State private var showingStartSearch = false
     @State private var showingEndSearch = false
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -36,13 +36,12 @@ struct RouteView: View {
                         .onTapGesture {
                             showingStartSearch = true
                         }
-                        .disabled(true) // Disable direct editing
                     Button(action: useCurrentLocation) {
                         Image(systemName: "location.fill")
                     }
                 }
                 .padding(.horizontal)
-                
+
                 // End location
                 HStack {
                     Image(systemName: "mappin.circle.fill")
@@ -53,10 +52,9 @@ struct RouteView: View {
                         .onTapGesture {
                             showingEndSearch = true
                         }
-                        .disabled(true) // Disable direct editing
                 }
                 .padding(.horizontal)
-                
+
                 // Find route button
                 Button(action: findRoute) {
                     if isLoading {
@@ -74,19 +72,19 @@ struct RouteView: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
                 .disabled(isLoading)
-                
+
                 // Route results
                 if let route = route {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("route_details")
                             .font(.headline)
                             .padding(.horizontal)
-                        
+
                         Text("total_time: \(route.totalMinutes) min")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .padding(.horizontal)
-                        
+
                         ForEach(route.segments) { segment in
                             RouteSegmentRow(segment: segment)
                         }
@@ -114,7 +112,7 @@ struct RouteView: View {
             }
         }
     }
-    
+
     private func useCurrentLocation() {
         locationManager.getCurrentLocation { location in
             guard let location = location else { return }
@@ -122,7 +120,7 @@ struct RouteView: View {
             startLocation = NSLocalizedString("my_location", comment: "My Location")
         }
     }
-    
+
     private func findRoute() {
         // Check if we have coordinates
         guard let startCoord = startCoordinate,
@@ -131,11 +129,11 @@ struct RouteView: View {
             showingError = true
             return
         }
-        
+
         isLoading = true
-        
+
         print("Finding route from \(startCoord.latitude), \(startCoord.longitude) to \(endCoord.latitude), \(endCoord.longitude)")
-        
+
         APIService.shared.findRoute(
             startLat: startCoord.latitude,
             startLng: startCoord.longitude,
@@ -160,7 +158,7 @@ struct RouteView: View {
 
 struct RouteSegmentRow: View {
     let segment: RouteSegment
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Icon
@@ -171,23 +169,23 @@ struct RouteSegmentRow: View {
                     Image(systemName: iconForSegment)
                         .foregroundColor(.white)
                 )
-            
+
             // Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(segment.isWalking ? "walk" : segment.line ?? "")
                     .font(.headline)
-                
+
                 if let stations = segment.stations, !stations.isEmpty {
                     Text("\(stations.count) stops")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Text("\(Int(segment.durationInSeconds / 60)) min")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
         }
         .padding()
@@ -195,7 +193,7 @@ struct RouteSegmentRow: View {
         .cornerRadius(10)
         .padding(.horizontal)
     }
-    
+
     private var iconForSegment: String {
         if segment.isWalking {
             return "figure.walk"
@@ -208,10 +206,23 @@ struct RouteSegmentRow: View {
     }
 }
 
-#Preview {
-    RouteView(region: .constant(MKCoordinateRegion(
+// Wrapper for preview to provide a FocusState binding
+private struct RouteViewPreviewWrapper: View {
+    @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753),
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
-    )))
-    .environmentObject(LocationManager())
+    )
+    @FocusState private var isTextFieldFocused: Bool
+
+    var body: some View {
+        RouteView(
+            region: $region,
+            isTextFieldFocused: $isTextFieldFocused
+        )
+        .environmentObject(LocationManager())
+    }
+}
+
+#Preview {
+    RouteViewPreviewWrapper()
 }
