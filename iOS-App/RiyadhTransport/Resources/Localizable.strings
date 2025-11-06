@@ -23,6 +23,14 @@
 "route_details" = "Route Details";
 "total_time" = "Total Time";
 "walk" = "Walk";
+"my_location" = "My Location";
+"select_locations" = "Please select start and end locations";
+
+/* Search */
+"search_location" = "Search Location";
+"search_hint" = "Enter a location or station name";
+"no_results" = "No results found";
+"locations" = "Locations";
 
 /* Stations View */
 "search_stations" = "Search Stations...";
@@ -53,7 +61,6 @@
 "no_favorite_locations" = "No favorite locations";
 "no_search_history" = "No search history";
 "clear_history" = "Clear History";
-"locations" = "Locations";
 "history" = "History";
 
 /* Settings */

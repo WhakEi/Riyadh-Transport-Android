@@ -10,6 +10,7 @@ import MapKit
 
 struct RouteView: View {
     @Binding var region: MKCoordinateRegion
+    @FocusState.Binding var isTextFieldFocused: Bool
     @EnvironmentObject var locationManager: LocationManager
     @State private var startLocation: String = ""
     @State private var endLocation: String = ""
@@ -19,6 +20,8 @@ struct RouteView: View {
     @State private var errorMessage = ""
     @State private var startCoordinate: CLLocationCoordinate2D?
     @State private var endCoordinate: CLLocationCoordinate2D?
+    @State private var showingStartSearch = false
+    @State private var showingEndSearch = false
     
     var body: some View {
         ScrollView {
@@ -29,6 +32,11 @@ struct RouteView: View {
                         .foregroundColor(.green)
                     TextField("start_location", text: $startLocation)
                         .textFieldStyle(.roundedBorder)
+                        .focused($isTextFieldFocused)
+                        .onTapGesture {
+                            showingStartSearch = true
+                        }
+                        .disabled(true) // Disable direct editing
                     Button(action: useCurrentLocation) {
                         Image(systemName: "location.fill")
                     }
@@ -41,6 +49,11 @@ struct RouteView: View {
                         .foregroundColor(.red)
                     TextField("end_location", text: $endLocation)
                         .textFieldStyle(.roundedBorder)
+                        .focused($isTextFieldFocused)
+                        .onTapGesture {
+                            showingEndSearch = true
+                        }
+                        .disabled(true) // Disable direct editing
                 }
                 .padding(.horizontal)
                 
@@ -88,26 +101,40 @@ struct RouteView: View {
         } message: {
             Text(errorMessage)
         }
+        .sheet(isPresented: $showingStartSearch) {
+            SearchLocationView(isPresented: $showingStartSearch) { result in
+                startLocation = result.name
+                startCoordinate = result.coordinate
+            }
+        }
+        .sheet(isPresented: $showingEndSearch) {
+            SearchLocationView(isPresented: $showingEndSearch) { result in
+                endLocation = result.name
+                endCoordinate = result.coordinate
+            }
+        }
     }
     
     private func useCurrentLocation() {
         locationManager.getCurrentLocation { location in
             guard let location = location else { return }
             startCoordinate = location.coordinate
-            startLocation = String(format: "%.4f, %.4f", location.coordinate.latitude, location.coordinate.longitude)
+            startLocation = NSLocalizedString("my_location", comment: "My Location")
         }
     }
     
     private func findRoute() {
-        // Parse coordinates from text or use stored coordinates
-        guard let startCoord = startCoordinate ?? parseCoordinate(from: startLocation),
-              let endCoord = endCoordinate ?? parseCoordinate(from: endLocation) else {
-            errorMessage = "Please enter valid coordinates"
+        // Check if we have coordinates
+        guard let startCoord = startCoordinate,
+              let endCoord = endCoordinate else {
+            errorMessage = NSLocalizedString("select_locations", comment: "Please select start and end locations")
             showingError = true
             return
         }
         
         isLoading = true
+        
+        print("Finding route from \(startCoord.latitude), \(startCoord.longitude) to \(endCoord.latitude), \(endCoord.longitude)")
         
         APIService.shared.findRoute(
             startLat: startCoord.latitude,
@@ -119,23 +146,15 @@ struct RouteView: View {
                 isLoading = false
                 switch result {
                 case .success(let foundRoute):
+                    print("Route found with \(foundRoute.segments.count) segments")
                     route = foundRoute
                 case .failure(let error):
+                    print("Route error: \(error.localizedDescription)")
                     errorMessage = error.localizedDescription
                     showingError = true
                 }
             }
         }
-    }
-    
-    private func parseCoordinate(from text: String) -> CLLocationCoordinate2D? {
-        let components = text.components(separatedBy: ",")
-        guard components.count == 2,
-              let lat = Double(components[0].trimmingCharacters(in: .whitespaces)),
-              let lng = Double(components[1].trimmingCharacters(in: .whitespaces)) else {
-            return nil
-        }
-        return CLLocationCoordinate2D(latitude: lat, longitude: lng)
     }
 }
 

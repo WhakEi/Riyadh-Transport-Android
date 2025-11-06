@@ -23,6 +23,14 @@
 "route_details" = "تفاصيل المسار";
 "total_time" = "الوقت الإجمالي";
 "walk" = "المشي";
+"my_location" = "موقعي";
+"select_locations" = "الرجاء تحديد موقع البداية والوجهة";
+
+/* Search */
+"search_location" = "البحث عن موقع";
+"search_hint" = "أدخل اسم موقع أو محطة";
+"no_results" = "لم يتم العثور على نتائج";
+"locations" = "المواقع";
 
 /* Stations View */
 "search_stations" = "ابحث عن المحطات...";
@@ -53,7 +61,6 @@
 "no_favorite_locations" = "لا توجد مواقع مفضلة";
 "no_search_history" = "لا يوجد سجل بحث";
 "clear_history" = "مسح السجل";
-"locations" = "المواقع";
 "history" = "السجل";
 
 /* Settings */

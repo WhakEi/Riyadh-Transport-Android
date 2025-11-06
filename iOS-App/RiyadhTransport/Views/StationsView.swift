@@ -10,6 +10,7 @@ import MapKit
 
 struct StationsView: View {
     @Binding var region: MKCoordinateRegion
+    @FocusState.Binding var isTextFieldFocused: Bool
     @EnvironmentObject var locationManager: LocationManager
     @State private var stations: [Station] = []
     @State private var searchText = ""
@@ -33,6 +34,7 @@ struct StationsView: View {
                     .foregroundColor(.gray)
                 TextField("search_stations", text: $searchText)
                     .textFieldStyle(.plain)
+                    .focused($isTextFieldFocused)
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
