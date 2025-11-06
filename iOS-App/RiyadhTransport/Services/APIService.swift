@@ -12,7 +12,7 @@ class APIService {
     static let shared = APIService()
     
     // Backend server URL
-    private let baseURL = "http://mainserver.inirl.net:5000/"
+    private let baseURL = "https://mainserver.inirl.net:5002/"
     private let nominatimURL = "https://nominatim.openstreetmap.org/"
     
     private init() {}
