@@ -20,56 +20,177 @@ struct RouteView: View {
     @State private var errorMessage = ""
     @State private var startCoordinate: CLLocationCoordinate2D?
     @State private var endCoordinate: CLLocationCoordinate2D?
-    @State private var showingStartSearch = false
-    @State private var showingEndSearch = false
+    @State private var showStartSuggestions = false
+    @State private var showEndSuggestions = false
+    @State private var stations: [Station] = []
+    @State private var isLoadingStations = false
+    @FocusState private var startFieldFocused: Bool
+    @FocusState private var endFieldFocused: Bool
+    
+    var startSuggestions: [Station] {
+        guard !startLocation.isEmpty else { return [] }
+        return stations
+            .filter { $0.displayName.localizedCaseInsensitiveContains(startLocation) }
+            .prefix(5)
+            .map { $0 }
+    }
+    
+    var endSuggestions: [Station] {
+        guard !endLocation.isEmpty else { return [] }
+        return stations
+            .filter { $0.displayName.localizedCaseInsensitiveContains(endLocation) }
+            .prefix(5)
+            .map { $0 }
+    }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                // Start location
-                HStack {
-                    Image(systemName: "circle.fill")
-                        .foregroundColor(.green)
-                    TextField("start_location", text: $startLocation)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isTextFieldFocused)
-                        .onTapGesture {
-                            showingStartSearch = true
+            VStack(spacing: 20) {
+                // Start location with autocomplete
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "circle.fill")
+                            .foregroundColor(.green)
+                            .font(.system(size: 14))
+                        
+                        TextField("start_location", text: $startLocation)
+                            .font(.system(size: 16))
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 12)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(10)
+                            .focused($startFieldFocused)
+                            .onChange(of: startLocation) { _ in
+                                showStartSuggestions = !startLocation.isEmpty && startFieldFocused
+                                startCoordinate = nil
+                            }
+                            .onChange(of: startFieldFocused) { focused in
+                                showStartSuggestions = focused && !startLocation.isEmpty
+                            }
+                        
+                        Button(action: useCurrentLocation) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.blue)
+                                .padding(8)
                         }
-                    Button(action: useCurrentLocation) {
-                        Image(systemName: "location.fill")
+                    }
+                    
+                    // Start suggestions
+                    if showStartSuggestions && !startSuggestions.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(startSuggestions) { station in
+                                Button(action: {
+                                    selectStartStation(station)
+                                }) {
+                                    HStack {
+                                        Image(systemName: station.isMetro ? "tram.fill" : "bus.fill")
+                                            .foregroundColor(station.isMetro ? .blue : .green)
+                                            .font(.system(size: 14))
+                                        
+                                        Text(station.displayName)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.primary)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(Color(UIColor.tertiarySystemBackground))
+                                }
+                                
+                                if station.id != startSuggestions.last?.id {
+                                    Divider()
+                                        .padding(.leading, 40)
+                                }
+                            }
+                        }
+                        .background(Color(UIColor.tertiarySystemBackground))
+                        .cornerRadius(10)
+                        .padding(.leading, 26)
+                        .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
                     }
                 }
                 .padding(.horizontal)
-
-                // End location
-                HStack {
-                    Image(systemName: "mappin.circle.fill")
-                        .foregroundColor(.red)
-                    TextField("end_location", text: $endLocation)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isTextFieldFocused)
-                        .onTapGesture {
-                            showingEndSearch = true
+                
+                // End location with autocomplete
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.system(size: 14))
+                        
+                        TextField("end_location", text: $endLocation)
+                            .font(.system(size: 16))
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 12)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(10)
+                            .focused($endFieldFocused)
+                            .onChange(of: endLocation) { _ in
+                                showEndSuggestions = !endLocation.isEmpty && endFieldFocused
+                                endCoordinate = nil
+                            }
+                            .onChange(of: endFieldFocused) { focused in
+                                showEndSuggestions = focused && !endLocation.isEmpty
+                            }
+                    }
+                    
+                    // End suggestions
+                    if showEndSuggestions && !endSuggestions.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(endSuggestions) { station in
+                                Button(action: {
+                                    selectEndStation(station)
+                                }) {
+                                    HStack {
+                                        Image(systemName: station.isMetro ? "tram.fill" : "bus.fill")
+                                            .foregroundColor(station.isMetro ? .blue : .green)
+                                            .font(.system(size: 14))
+                                        
+                                        Text(station.displayName)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.primary)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(Color(UIColor.tertiarySystemBackground))
+                                }
+                                
+                                if station.id != endSuggestions.last?.id {
+                                    Divider()
+                                        .padding(.leading, 40)
+                                }
+                            }
                         }
+                        .background(Color(UIColor.tertiarySystemBackground))
+                        .cornerRadius(10)
+                        .padding(.leading, 26)
+                        .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
+                    }
                 }
                 .padding(.horizontal)
 
                 // Find route button
                 Button(action: findRoute) {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text("find_route")
-                            .fontWeight(.semibold)
+                    HStack {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("find_route")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 17))
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
                 .background(Color.blue)
                 .foregroundColor(.white)
-                .cornerRadius(10)
+                .cornerRadius(12)
                 .padding(.horizontal)
                 .disabled(isLoading)
 
@@ -99,28 +220,52 @@ struct RouteView: View {
         } message: {
             Text(errorMessage)
         }
-        .sheet(isPresented: $showingStartSearch) {
-            SearchLocationView(isPresented: $showingStartSearch) { result in
-                startLocation = result.name
-                startCoordinate = result.coordinate
-            }
+        .onAppear {
+            loadStations()
         }
-        .sheet(isPresented: $showingEndSearch) {
-            SearchLocationView(isPresented: $showingEndSearch) { result in
-                endLocation = result.name
-                endCoordinate = result.coordinate
+    }
+    
+    private func loadStations() {
+        guard stations.isEmpty else { return }
+        isLoadingStations = true
+        
+        APIService.shared.getStations { result in
+            DispatchQueue.main.async {
+                isLoadingStations = false
+                switch result {
+                case .success(let loadedStations):
+                    stations = loadedStations
+                    print("Loaded \(stations.count) stations for autocomplete")
+                case .failure(let error):
+                    print("Error loading stations: \(error.localizedDescription)")
+                }
             }
         }
     }
-
+    
+    private func selectStartStation(_ station: Station) {
+        startLocation = station.displayName
+        startCoordinate = station.coordinate
+        showStartSuggestions = false
+        startFieldFocused = false
+    }
+    
+    private func selectEndStation(_ station: Station) {
+        endLocation = station.displayName
+        endCoordinate = station.coordinate
+        showEndSuggestions = false
+        endFieldFocused = false
+    }
+    
     private func useCurrentLocation() {
         locationManager.getCurrentLocation { location in
             guard let location = location else { return }
             startCoordinate = location.coordinate
             startLocation = NSLocalizedString("my_location", comment: "My Location")
+            showStartSuggestions = false
         }
     }
-
+    
     private func findRoute() {
         // Check if we have coordinates
         guard let startCoord = startCoordinate,
@@ -129,11 +274,11 @@ struct RouteView: View {
             showingError = true
             return
         }
-
+        
         isLoading = true
-
+        
         print("Finding route from \(startCoord.latitude), \(startCoord.longitude) to \(endCoord.latitude), \(endCoord.longitude)")
-
+        
         APIService.shared.findRoute(
             startLat: startCoord.latitude,
             startLng: startCoord.longitude,

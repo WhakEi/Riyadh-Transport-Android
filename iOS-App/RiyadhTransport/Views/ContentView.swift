@@ -30,51 +30,52 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Map background
-            MapView(region: $region)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    // Dismiss keyboard when tapping map
-                    isTextFieldFocused = false
-                }
-            
-            // Floating action buttons (behind sheet when expanded)
-            VStack {
-                HStack {
-                    Spacer()
-                    
-                    VStack(spacing: 16) {
-                        // Settings button
-                        Button(action: { showingSettings = true }) {
-                            Image(systemName: "gear")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .frame(width: 56, height: 56)
-                                .background(Color.blue)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
-                        }
-                        
-                        // Favorites button
-                        NavigationLink(destination: FavoritesView()) {
-                            Image(systemName: "star.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .frame(width: 56, height: 56)
-                                .background(Color.orange)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
-                        }
+        NavigationView {
+            ZStack {
+                // Map background
+                MapView(region: $region)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        // Dismiss keyboard when tapping map
+                        isTextFieldFocused = false
                     }
-                    .padding()
-                }
                 
-                Spacer()
-            }
-            .padding(.top, 50)
-            .opacity(currentHeight < maxHeight * 0.7 ? 1.0 : 0.0)
-            .animation(.easeInOut(duration: 0.2), value: currentHeight)
+                // Floating action buttons (behind sheet when expanded)
+                VStack {
+                    HStack {
+                        Spacer()
+                        
+                        VStack(spacing: 16) {
+                            // Settings button
+                            Button(action: { showingSettings = true }) {
+                                Image(systemName: "gear")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .frame(width: 56, height: 56)
+                                    .background(Color.blue)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
+                            
+                            // Favorites button
+                            NavigationLink(destination: FavoritesView()) {
+                                Image(systemName: "star.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .frame(width: 56, height: 56)
+                                    .background(Color.orange)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
+                        }
+                        .padding()
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.top, 50)
+                .opacity(currentHeight < maxHeight * 0.7 ? 1.0 : 0.0)
+                .animation(.easeInOut(duration: 0.2), value: currentHeight)
             
             // Bottom sheet with tabs
             VStack(spacing: 0) {
@@ -89,13 +90,24 @@ struct ContentView: View {
                             .onChanged { value in
                                 isDragging = true
                                 let translation = value.translation.height
-                                bottomSheetOffset = -translation
-                                // Clamp the offset
-                                let newHeight = minHeight - bottomSheetOffset
+                                let proposedOffset = -translation
+                                
+                                // Apply resistance at boundaries for smoother feel
+                                let newHeight = minHeight - proposedOffset
+                                
                                 if newHeight < minHeight {
-                                    bottomSheetOffset = 0
+                                    // Apply resistance when trying to drag below minimum
+                                    let excess = minHeight - newHeight
+                                    let resistance = excess * 0.3
+                                    bottomSheetOffset = -(resistance)
                                 } else if newHeight > maxHeight {
-                                    bottomSheetOffset = -(maxHeight - minHeight)
+                                    // Apply resistance when trying to drag above maximum
+                                    let excess = newHeight - maxHeight
+                                    let resistance = excess * 0.3
+                                    bottomSheetOffset = -(maxHeight - minHeight + resistance)
+                                } else {
+                                    // Normal dragging
+                                    bottomSheetOffset = proposedOffset
                                 }
                             }
                             .onEnded { value in
@@ -103,18 +115,27 @@ struct ContentView: View {
                                 let translation = value.translation.height
                                 let velocity = value.predictedEndTranslation.height - translation
                                 
-                                // Snap to nearest position based on velocity and position
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                    if velocity < -200 || (translation < -100 && velocity < 0) {
-                                        // Snap to expanded
+                                // Calculate target position based on velocity and current position
+                                let currentHeight = minHeight - bottomSheetOffset
+                                let midPoint = (minHeight + maxHeight) / 2
+                                
+                                withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
+                                    // Strong velocity overrides position
+                                    if velocity < -500 {
+                                        // Fast upward swipe -> expand
                                         bottomSheetOffset = -(maxHeight - minHeight)
-                                    } else if velocity > 200 || (translation > 100 && velocity > 0) {
-                                        // Snap to collapsed
+                                    } else if velocity > 500 {
+                                        // Fast downward swipe -> collapse
                                         bottomSheetOffset = 0
+                                    } else if abs(velocity) > 100 {
+                                        // Medium velocity -> direction matters
+                                        if velocity < 0 {
+                                            bottomSheetOffset = -(maxHeight - minHeight)
+                                        } else {
+                                            bottomSheetOffset = 0
+                                        }
                                     } else {
-                                        // Snap to nearest
-                                        let currentHeight = minHeight - bottomSheetOffset
-                                        let midPoint = (minHeight + maxHeight) / 2
+                                        // Low velocity -> snap to nearest
                                         if currentHeight > midPoint {
                                             bottomSheetOffset = -(maxHeight - minHeight)
                                         } else {
@@ -154,7 +175,7 @@ struct ContentView: View {
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .shadow(color: .black.opacity(0.2), radius: 10)
             .offset(y: UIScreen.main.bounds.height - currentHeight)
-            .animation(isDragging ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: bottomSheetOffset)
+            .animation(isDragging ? nil : .interpolatingSpring(stiffness: 300, damping: 30), value: bottomSheetOffset)
             .gesture(
                 // Allow tapping content to dismiss keyboard
                 TapGesture()
@@ -163,6 +184,7 @@ struct ContentView: View {
                     }
             )
         }
+        .navigationBarHidden(true)
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
