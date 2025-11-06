@@ -11,32 +11,39 @@ import MapKit
 struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     @State private var stations: [Station] = []
-    
+
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.setRegion(region, animated: false)
-        
-        // Load and display stations
-        loadStations(on: mapView)
-        
+
+        // Load and display only nearby stations at start
+        loadNearbyStations(on: mapView, for: region.center)
+
         return mapView
     }
-    
+
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        // Keep the region in sync with SwiftUI state
         if mapView.region.center.latitude != region.center.latitude ||
-           mapView.region.center.longitude != region.center.longitude {
+            mapView.region.center.longitude != region.center.longitude {
             mapView.setRegion(region, animated: true)
+            // Each time region changes, reload nearby stations
+            loadNearbyStations(on: mapView, for: region.center)
         }
     }
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
-    private func loadStations(on mapView: MKMapView) {
-        APIService.shared.getStations { result in
+
+    private func loadNearbyStations(on mapView: MKMapView, for center: CLLocationCoordinate2D) {
+        // Remove old annotations first
+        let stationAnnotations = mapView.annotations.filter { !($0 is MKUserLocation) }
+        mapView.removeAnnotations(stationAnnotations)
+
+        APIService.shared.getNearbyStations(latitude: center.latitude, longitude: center.longitude) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let stations):
@@ -49,27 +56,27 @@ struct MapView: UIViewRepresentable {
                     }
                     mapView.addAnnotations(annotations)
                 case .failure(let error):
-                    print("Error loading stations: \(error.localizedDescription)")
+                    print("Error loading nearby stations: \(error.localizedDescription)")
                 }
             }
         }
     }
-    
+
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
-        
+
         init(_ parent: MapView) {
             self.parent = parent
         }
-        
+
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             if annotation is MKUserLocation {
                 return nil
             }
-            
+
             let identifier = "StationAnnotation"
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
-            
+
             if annotationView == nil {
                 annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
                 annotationView?.canShowCallout = true
@@ -77,7 +84,7 @@ struct MapView: UIViewRepresentable {
             } else {
                 annotationView?.annotation = annotation
             }
-            
+
             // Color code by type
             if let subtitle = annotation.subtitle as? String {
                 if subtitle.lowercased().contains("metro") {
@@ -86,12 +93,14 @@ struct MapView: UIViewRepresentable {
                     annotationView?.markerTintColor = .systemGreen
                 }
             }
-            
+
             return annotationView
         }
-        
+
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
             parent.region = mapView.region
+            // Each time region changes, reload nearby stations
+            parent.loadNearbyStations(on: mapView, for: mapView.region.center)
         }
     }
 }
