@@ -7,8 +7,10 @@
 
 import Foundation
 import CoreLocation
+import Combine
 
-class FavoritesManager: ObservableObject {
+@MainActor
+final class FavoritesManager: ObservableObject {
     static let shared = FavoritesManager()
     
     @Published var favoriteStations: [Station] = []
