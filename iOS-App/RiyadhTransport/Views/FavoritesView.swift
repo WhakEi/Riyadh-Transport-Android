@@ -94,6 +94,28 @@ struct FavoritesView: View {
     }
 }
 
+struct StationRow: View {
+    let station: Station
+
+    var body: some View {
+        HStack {
+            Image(systemName: station.isMetro ? "tram.fill" : "bus.fill")
+                .foregroundColor(station.isMetro ? .blue : .green)
+                .frame(width: 30)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(station.displayName)
+                    .font(.headline)
+                Text(String(format: "%.4f, %.4f", station.latitude, station.longitude))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 struct LocationRow: View {
     let location: SearchResult
     
