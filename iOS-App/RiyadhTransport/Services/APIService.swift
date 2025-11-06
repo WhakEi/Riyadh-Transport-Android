@@ -44,47 +44,34 @@ class APIService {
             "end_lng": endLng
         ]
         
-        performRequest(endpoint: endpoint, method: "POST", parameters: parameters) { (result: Result<[String: Any], Error>) in
-            switch result {
-            case .success(let json):
-                // Parse route from JSON
-                do {
-                    let data = try JSONSerialization.data(withJSONObject: json)
-                    let route = try JSONDecoder().decode(Route.self, from: data)
-                    completion(.success(route))
-                } catch {
-                    completion(.failure(error))
-                }
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
+        // Decode Route directly instead of trying to decode [String: Any]
+        performRequest(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
     }
     
-    // MARK: - Arrivals
+    // MARK: - Arrivals (dictionary JSON)
     
     func getMetroArrivals(stationName: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         let endpoint = baseURL + "metro_arrivals"
         let parameters: [String: String] = ["station_name": stationName]
-        performRequest(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
+        performRequestJSON(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
     }
     
     func getBusArrivals(stationName: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         let endpoint = baseURL + "bus_arrivals"
         let parameters: [String: String] = ["station_name": stationName]
-        performRequest(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
+        performRequestJSON(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
     }
     
-    // MARK: - Lines
+    // MARK: - Lines (dictionary JSON)
     
     func getBusLines(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         let endpoint = baseURL + "buslines"
-        performRequest(endpoint: endpoint, completion: completion)
+        performRequestJSON(endpoint: endpoint, completion: completion)
     }
     
     func getMetroLines(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         let endpoint = baseURL + "mtrlines"
-        performRequest(endpoint: endpoint, completion: completion)
+        performRequestJSON(endpoint: endpoint, completion: completion)
     }
     
     // MARK: - Search
@@ -134,8 +121,9 @@ class APIService {
         }.resume()
     }
     
-    // MARK: - Generic Request Handler
+    // MARK: - Generic Request Handlers
     
+    // Decodes into a concrete Decodable type (e.g., [Station], Route)
     private func performRequest<T: Decodable>(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil, completion: @escaping (Result<T, Error>) -> Void) {
         guard let url = URL(string: endpoint) else {
             completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
@@ -169,6 +157,50 @@ class APIService {
             do {
                 let result = try JSONDecoder().decode(T.self, from: data)
                 completion(.success(result))
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    // Returns raw JSON as [String: Any] using JSONSerialization
+    private func performRequestJSON(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        guard let url = URL(string: endpoint) else {
+            completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let parameters = parameters, method == "POST" {
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+            } catch {
+                completion(.failure(error))
+                return
+            }
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                if let dict = jsonObject as? [String: Any] {
+                    completion(.success(dict))
+                } else {
+                    completion(.failure(NSError(domain: "APIService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Expected a JSON object"])))
+                }
             } catch {
                 completion(.failure(error))
             }
