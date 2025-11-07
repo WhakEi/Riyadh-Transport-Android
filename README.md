@@ -12,7 +12,7 @@ An Android mobile application for Riyadh public transport, built in Java. This a
 - ✅ **Multilingual**: Supports English and Arabic (العربية) with language-specific map labels
 - ✅ **Favorites and Route History**: Ability to save a location or reopen a recently searched one to redo a route search. As well as favorite a line or view arrivals on a favorite station
 - ✅ **Dark Mode**: View UI and Map in Dark Mode when enabled by OS
-- ⚫ **iOS Support**: Native version that runs on iOS with ability to use Apple Maps or MapTiler depending on what the user chooses
+- ⏳ **iOS Support**: [Check out the iOS Repository for more information](https://github.com/WhakEi/Riyadh-Transport-iOS)
 
 
 ## Installation
