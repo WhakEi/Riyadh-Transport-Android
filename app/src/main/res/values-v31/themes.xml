@@ -1,6 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme using Material Design 3 -->
+    <!-- Base application theme for Android 12+ with dynamic colors (Material You) -->
     <style name="Theme.RiyadhTransport" parent="Theme.Material3.DayNight">
+        <!-- Enable dynamic colors on Android 12+ -->
+        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
+        
+        <!-- Fallback colors if dynamic colors are not available -->
         <!-- Primary brand colors -->
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
@@ -40,19 +44,15 @@
         <item name="colorOutlineVariant">@color/md_theme_light_outlineVariant</item>
         
         <!-- Status bar color -->
-        <item name="android:statusBarColor">@color/md_theme_light_primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         
         <!-- Enable edge-to-edge -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
     
     <style name="Theme.RiyadhTransport.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
-    
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.Dark" />
-    
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
 </resources>
