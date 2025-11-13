@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Wear OS features -->
+    <uses-feature android:name="android.hardware.type.watch" />
+    
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- Wearable Data Layer -->
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.RiyadhTransport.Wear"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+        
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.RiyadhTransport.Wear">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Search Activity -->
+        <activity
+            android:name=".SearchActivity"
+            android:label="@string/search"
+            android:parentActivityName=".MainActivity" />
+            
+        <!-- Stations Near Me Activity -->
+        <activity
+            android:name=".StationsNearMeActivity"
+            android:label="@string/stations_near_me"
+            android:parentActivityName=".MainActivity" />
+            
+        <!-- Station Details Activity -->
+        <activity
+            android:name=".StationDetailsActivity"
+            android:label="@string/station_details"
+            android:parentActivityName=".StationsNearMeActivity" />
+            
+        <!-- Route Instructions Activity -->
+        <activity
+            android:name=".RouteInstructionsActivity"
+            android:label="@string/route_instructions"
+            android:parentActivityName=".SearchActivity" />
+        
+        <!-- Wearable Capability -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="false" />
+    </application>
+
+</manifest>

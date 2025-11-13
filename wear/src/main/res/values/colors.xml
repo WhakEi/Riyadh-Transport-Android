@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="accent">#FFC107</color>
+    <color name="background">#000000</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="metro_blue">#2196F3</color>
+    <color name="bus_red">#FF5722</color>
+    <color name="walk_green">#4CAF50</color>
+    <color name="user_location">#4CAF50</color>
+    <color name="cluster_amber">#FFC107</color>
+</resources>
