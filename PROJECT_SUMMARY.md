@@ -278,9 +278,7 @@ The codebase is ready for:
 ## Known Limitations
 
 1. **Backend Dependency**: Requires running backend server
-2. **Network Only**: No offline mode yet (though map tiles are cached)
-3. **Limited Testing**: Needs testing with real data
-4. **Placeholder Logic**: Some features need completion
+2. **Network Only**: No offline mode yet
 
 ## Conclusion
 
