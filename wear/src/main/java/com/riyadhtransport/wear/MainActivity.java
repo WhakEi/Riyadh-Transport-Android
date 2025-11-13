@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     
     private Button btnSearch;
     private Button btnStationsNearMe;
-    private TextView gpsStatusText;
     
     private WearLocationHelper locationHelper;
     private DataSyncHelper dataSyncHelper;
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private void initViews() {
         btnSearch = findViewById(R.id.btnSearch);
         btnStationsNearMe = findViewById(R.id.btnStationsNearMe);
-        gpsStatusText = findViewById(R.id.gpsStatusText);
+        // GPS status text removed per feedback
     }
     
     private void setupListeners() {
@@ -62,26 +61,20 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void checkLocationPermission() {
+        // Simply check if permission is granted, don't show GPS status
         if (locationHelper.hasLocationPermission()) {
-            // Check GPS status
+            // Silently verify GPS is available
             locationHelper.getCurrentLocation(new WearLocationHelper.LocationCallback() {
                 @Override
                 public void onLocationReceived(Location location, boolean fromWatch) {
-                    runOnUiThread(() -> {
-                        gpsStatusText.setVisibility(TextView.VISIBLE);
-                        if (fromWatch) {
-                            gpsStatusText.setText(R.string.using_watch_gps);
-                        } else {
-                            gpsStatusText.setText(R.string.using_phone_gps);
-                        }
-                    });
+                    // GPS is available, no need to show status
                 }
                 
                 @Override
                 public void onLocationError(String error) {
+                    // Only show error if GPS is not available at all
                     runOnUiThread(() -> {
-                        gpsStatusText.setVisibility(TextView.VISIBLE);
-                        gpsStatusText.setText(error);
+                        Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
                     });
                 }
             });

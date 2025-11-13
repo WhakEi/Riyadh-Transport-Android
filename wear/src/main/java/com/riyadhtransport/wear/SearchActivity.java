@@ -9,8 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.riyadhtransport.wear.adapters.DestinationAdapter;
+import androidx.wear.widget.WearableLinearLayoutManager;
+import androidx.wear.widget.WearableRecyclerView;
+import com.riyadhtransport.wear.adapters.DestinationWithHeaderAdapter;
 import com.riyadhtransport.wear.models.RouteInstruction;
 import com.riyadhtransport.wear.models.WearFavorite;
 import com.riyadhtransport.wear.utils.DataSyncHelper;
@@ -18,14 +19,12 @@ import com.riyadhtransport.wear.utils.WearLocationHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchActivity extends AppCompatActivity implements DestinationAdapter.OnDestinationClickListener {
-    private RecyclerView favoritesRecyclerView;
-    private RecyclerView historyRecyclerView;
+public class SearchActivity extends AppCompatActivity implements DestinationWithHeaderAdapter.OnDestinationClickListener {
+    private WearableRecyclerView destinationsRecyclerView;
     private ProgressBar progressBar;
     private TextView emptyText;
     
-    private DestinationAdapter favoritesAdapter;
-    private DestinationAdapter historyAdapter;
+    private DestinationWithHeaderAdapter adapter;
     private DataSyncHelper dataSyncHelper;
     private WearLocationHelper locationHelper;
     
@@ -45,20 +44,15 @@ public class SearchActivity extends AppCompatActivity implements DestinationAdap
     }
     
     private void initViews() {
-        favoritesRecyclerView = findViewById(R.id.favoritesRecyclerView);
-        historyRecyclerView = findViewById(R.id.historyRecyclerView);
+        destinationsRecyclerView = findViewById(R.id.destinationsRecyclerView);
         progressBar = findViewById(R.id.progressBar);
         emptyText = findViewById(R.id.emptyText);
         
-        // Setup favorites
-        favoritesAdapter = new DestinationAdapter(this);
-        favoritesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        favoritesRecyclerView.setAdapter(favoritesAdapter);
-        
-        // Setup history
-        historyAdapter = new DestinationAdapter(this);
-        historyRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        historyRecyclerView.setAdapter(historyAdapter);
+        // Setup single recycler view with curved layout for round screens
+        adapter = new DestinationWithHeaderAdapter(this);
+        destinationsRecyclerView.setLayoutManager(new WearableLinearLayoutManager(this));
+        destinationsRecyclerView.setEdgeItemsCenteringEnabled(true);
+        destinationsRecyclerView.setAdapter(adapter);
     }
     
     private void loadData() {
@@ -67,10 +61,12 @@ public class SearchActivity extends AppCompatActivity implements DestinationAdap
         
         if (favorites.isEmpty() && history.isEmpty()) {
             emptyText.setVisibility(View.VISIBLE);
+            destinationsRecyclerView.setVisibility(View.GONE);
         } else {
             emptyText.setVisibility(View.GONE);
-            favoritesAdapter.setDestinations(favorites);
-            historyAdapter.setDestinations(history);
+            destinationsRecyclerView.setVisibility(View.VISIBLE);
+            // History first, then favorites as per feedback
+            adapter.setData(history, favorites);
         }
     }
     
@@ -97,8 +93,7 @@ public class SearchActivity extends AppCompatActivity implements DestinationAdap
         
         // Show progress
         progressBar.setVisibility(View.VISIBLE);
-        favoritesRecyclerView.setVisibility(View.GONE);
-        historyRecyclerView.setVisibility(View.GONE);
+        destinationsRecyclerView.setVisibility(View.GONE);
         
         // In a real implementation, we would call the route API here
         // For now, create mock route instructions
@@ -143,7 +138,6 @@ public class SearchActivity extends AppCompatActivity implements DestinationAdap
         startActivity(intent);
         
         progressBar.setVisibility(View.GONE);
-        favoritesRecyclerView.setVisibility(View.VISIBLE);
-        historyRecyclerView.setVisibility(View.VISIBLE);
+        destinationsRecyclerView.setVisibility(View.VISIBLE);
     }
 }

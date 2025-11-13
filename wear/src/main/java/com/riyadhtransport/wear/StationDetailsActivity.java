@@ -6,8 +6,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.wear.widget.WearableLinearLayoutManager;
+import androidx.wear.widget.WearableRecyclerView;
 import com.riyadhtransport.wear.adapters.ArrivalAdapter;
 import com.riyadhtransport.wear.api.WearApiClient;
 import com.riyadhtransport.wear.api.WearTransportService;
@@ -22,7 +22,7 @@ import retrofit2.Response;
 
 public class StationDetailsActivity extends AppCompatActivity {
     private TextView stationNameText;
-    private RecyclerView arrivalsRecyclerView;
+    private WearableRecyclerView arrivalsRecyclerView;
     private ProgressBar progressBar;
     private TextView emptyText;
     
@@ -51,7 +51,8 @@ public class StationDetailsActivity extends AppCompatActivity {
         stationNameText.setText(stationName);
         
         arrivalAdapter = new ArrivalAdapter();
-        arrivalsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        arrivalsRecyclerView.setLayoutManager(new WearableLinearLayoutManager(this));
+        arrivalsRecyclerView.setEdgeItemsCenteringEnabled(true);
         arrivalsRecyclerView.setAdapter(arrivalAdapter);
     }
     
