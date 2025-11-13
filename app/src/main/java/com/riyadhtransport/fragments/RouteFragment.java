@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -19,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import com.riyadhtransport.models.Station;
 import com.riyadhtransport.MainActivity;
@@ -55,8 +55,8 @@ public class RouteFragment extends Fragment {
     private static final String TAG = "RouteFragment";
     private static final long REFRESH_INTERVAL_MS = 60000; // 60 seconds
     
-    private AutoCompleteTextView startInput;
-    private AutoCompleteTextView endInput;
+    private TextInputEditText startInput;
+    private TextInputEditText endInput;
     private Button findRouteButton;
     private Button useLocationButton;
     private LinearLayout routeDetailsContainer;

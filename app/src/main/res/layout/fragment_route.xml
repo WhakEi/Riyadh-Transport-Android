@@ -18,23 +18,24 @@
     <!-- Start Location Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/start_input_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/start_location"
         app:boxBackgroundMode="outline"
         app:startIconDrawable="@android:drawable/ic_menu_search">
 
-        <AutoCompleteTextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/start_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:completionThreshold="1" />
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- End Location Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/end_input_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -42,12 +43,11 @@
         app:boxBackgroundMode="outline"
         app:startIconDrawable="@android:drawable/ic_menu_search">
 
-        <AutoCompleteTextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/end_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:completionThreshold="1" />
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Find Route Button -->

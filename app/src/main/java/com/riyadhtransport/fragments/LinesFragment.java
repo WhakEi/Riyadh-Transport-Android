@@ -1,6 +1,5 @@
 package com.riyadhtransport.fragments;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
@@ -414,7 +414,7 @@ public class LinesFragment extends Fragment {
                 dir2 + arrow + dir1
         };
 
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.select_direction)
                 .setItems(options, (dialog, which) -> {
                     String selectedDirection = which == 0 ? dir1 : dir2;
