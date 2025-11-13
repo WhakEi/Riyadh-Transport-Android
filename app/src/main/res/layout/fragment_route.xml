@@ -18,56 +18,65 @@
     <!-- Start Location Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/start_input_layout"
+        style="@style/Widget.Material3.TextInputLayout.FilledBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/start_location"
-        app:boxBackgroundMode="outline"
+        app:boxBackgroundMode="filled"
+        app:boxCornerRadiusTopStart="28dp"
+        app:boxCornerRadiusTopEnd="28dp"
+        app:boxCornerRadiusBottomStart="28dp"
+        app:boxCornerRadiusBottomEnd="28dp"
         app:startIconDrawable="@android:drawable/ic_menu_search">
 
-        <AutoCompleteTextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/start_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:completionThreshold="1" />
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- End Location Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/end_input_layout"
+        style="@style/Widget.Material3.TextInputLayout.FilledBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="@string/end_location"
-        app:boxBackgroundMode="outline"
+        app:boxBackgroundMode="filled"
+        app:boxCornerRadiusTopStart="28dp"
+        app:boxCornerRadiusTopEnd="28dp"
+        app:boxCornerRadiusBottomStart="28dp"
+        app:boxCornerRadiusBottomEnd="28dp"
         app:startIconDrawable="@android:drawable/ic_menu_search">
 
-        <AutoCompleteTextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/end_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:completionThreshold="1" />
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Find Route Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/find_route_button"
+        style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/find_route"
-        app:cornerRadius="8dp" />
+        app:cornerRadius="20dp" />
 
     <!-- Use My Location Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/use_location_button"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/use_my_location"
-        app:cornerRadius="8dp" />
+        app:cornerRadius="20dp" />
 
     <!-- Alerts Section (for general alerts) -->
     <LinearLayout
