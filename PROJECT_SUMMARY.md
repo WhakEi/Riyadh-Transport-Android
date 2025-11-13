@@ -121,13 +121,13 @@ The app includes complete API service definitions for:
 
 ### Core
 - **Language**: Java 8
-- **Min SDK**: Android 5.0 (API 21)
+- **Min SDK**: Android 7.0 (API 24)
 - **Target SDK**: Android 14 (API 34)
 - **Build System**: Gradle 8.1.0
 
 ### Key Libraries
 - **AndroidX**: Modern Android support
-- **Material Design**: UI components
+- **Material Design 3**: UI components with Material You support
 - **OSMDroid**: OpenStreetMap for Android (map display)
 - **MapTiler**: Map tile provider with language support
 - **Google Play Services**: Location services (GPS only)
@@ -138,9 +138,10 @@ The app includes complete API service definitions for:
 ## Setup Requirements
 
 ### For Users
-1. Android device running Android 5.0 or higher
+1. Android device running Android 7.0 or higher
 2. Internet connection
 3. Location services enabled
+4. Android 12+ recommended for Material You dynamic colors
 
 ### For Developers
 1. Android Studio Arctic Fox or later
@@ -168,9 +169,6 @@ The app includes complete API service definitions for:
 - Complete API integration
 - Offline data caching
 - Push notifications
-- Favorites/bookmarks
-- Route history
-- Dark mode
 
 ## Code Quality
 

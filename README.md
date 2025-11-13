@@ -12,6 +12,7 @@ An Android mobile application for Riyadh public transport, built in Java. This a
 - ✅ **Multilingual**: Supports English and Arabic (العربية) with language-specific map labels
 - ✅ **Favorites and Route History**: Ability to save a location or reopen a recently searched one to redo a route search. As well as favorite a line or view arrivals on a favorite station
 - ✅ **Dark Mode**: View UI and Map in Dark Mode when enabled by OS
+- ✅ **Material Design 3**: Modern Material You design with dynamic colors on Android 12+
 - ⏳ **iOS Support**: [Check out the iOS Repository for more information](https://github.com/WhakEi/Riyadh-Transport-iOS)
 
 
@@ -76,12 +77,23 @@ The app will communicate with the Flask backend server using the following endpo
 ## Technologies Used
 
 - **Language**: Java
-- **UI Framework**: Android SDK, Material Design Components
+- **UI Framework**: Android SDK, Material Design 3 (Material You)
 - **Maps**: OSMDroid (OpenStreetMap) with MapTiler tiles
 - **Location**: Google Play Services Location
 - **Networking**: Retrofit 2, OkHttp
 - **JSON Parsing**: Gson
 - **Architecture**: Fragment-based with ViewPager2 and TabLayout
+
+## Design
+
+The app uses **Material Design 3** (Material You) providing:
+- Modern, refined UI components
+- Adaptive colors that match user's wallpaper on Android 12+
+- Automatic light/dark theme switching
+- Full backward compatibility with Android 7+
+- Consistent design language across the app
+
+For more details, see [MATERIAL_DESIGN_3_MIGRATION.md](MATERIAL_DESIGN_3_MIGRATION.md)
 
 ## Map Features
 
