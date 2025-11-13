@@ -47,12 +47,12 @@
     <!-- Clear Cache Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/clear_cache_button"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/clear_cache"
         android:layout_marginBottom="24dp"
-        app:cornerRadius="8dp" />
+        app:cornerRadius="20dp" />
 
     <!-- About Section -->
     <TextView
