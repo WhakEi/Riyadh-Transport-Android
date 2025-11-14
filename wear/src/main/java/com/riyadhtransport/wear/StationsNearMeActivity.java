@@ -76,9 +76,9 @@ public class StationsNearMeActivity extends AppCompatActivity implements SensorE
             }
             
             @Override
-            public void onClusterClick(List<WearStation> cluster) {
-                // Zoom into cluster
-                compassView.zoomIn();
+            public void onClusterClick(List<WearStation> cluster, float clusterBearing) {
+                // Zoom into cluster direction
+                compassView.zoomTowardDirection(clusterBearing);
                 btnResetZoom.setVisibility(View.VISIBLE);
             }
         });
@@ -113,15 +113,28 @@ public class StationsNearMeActivity extends AppCompatActivity implements SensorE
         Map<String, Object> coordinates = new HashMap<>();
         coordinates.put("lat", location.getLatitude());
         coordinates.put("lng", location.getLongitude());
+        coordinates.put("radius", 1.5); // 1.5 km radius like main app
         
         service.getNearbyStations(coordinates).enqueue(new Callback<List<WearStation>>() {
             @Override
             public void onResponse(Call<List<WearStation>> call, Response<List<WearStation>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<WearStation> stations = response.body();
-                    processStations(stations);
+                    if (stations.isEmpty()) {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            statusText.setVisibility(View.VISIBLE);
+                            statusText.setText(R.string.no_stations_nearby);
+                        });
+                    } else {
+                        processStations(stations);
+                    }
                 } else {
                     // Use mock data if API fails
+                    runOnUiThread(() -> {
+                        statusText.setVisibility(View.VISIBLE);
+                        statusText.setText("API error, using sample data");
+                    });
                     useMockStations();
                 }
             }
@@ -129,6 +142,10 @@ public class StationsNearMeActivity extends AppCompatActivity implements SensorE
             @Override
             public void onFailure(Call<List<WearStation>> call, Throwable t) {
                 // Use mock data if API fails
+                runOnUiThread(() -> {
+                    statusText.setVisibility(View.VISIBLE);
+                    statusText.setText("Network error, using sample data");
+                });
                 useMockStations();
             }
         });

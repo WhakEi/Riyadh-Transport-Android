@@ -35,7 +35,7 @@ public class CompassView extends View {
     
     public interface StationClickListener {
         void onStationClick(WearStation station);
-        void onClusterClick(List<WearStation> cluster);
+        void onClusterClick(List<WearStation> cluster, float clusterBearing);
     }
     
     private StationClickListener clickListener;
@@ -226,7 +226,9 @@ public class CompassView extends View {
                 
                 if (distance < 30f) { // Touch radius
                     if (entry.getValue().size() > 1) {
-                        clickListener.onClusterClick(entry.getValue());
+                        // Calculate cluster center bearing
+                        float clusterBearing = entry.getKey().getBearing();
+                        clickListener.onClusterClick(entry.getValue(), clusterBearing);
                     } else {
                         clickListener.onStationClick(entry.getKey());
                     }
@@ -257,6 +259,13 @@ public class CompassView extends View {
     
     public void zoomIn() {
         setZoomLevel(zoomLevel * 1.5f);
+    }
+    
+    public void zoomTowardDirection(float targetBearing) {
+        // Rotate view to center on the cluster
+        setUserDirection(targetBearing);
+        // Zoom in to decluster
+        setZoomLevel(zoomLevel * 2.0f);
     }
     
     public void resetZoom() {

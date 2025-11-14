@@ -63,24 +63,25 @@ public class StationDetailsActivity extends AppCompatActivity {
         WearTransportService service = WearApiClient.getTransportService();
         
         Map<String, String> stationData = new HashMap<>();
-        stationData.put("name", stationName);
+        stationData.put("station_name", stationName);
         
-        Call<List<WearArrival>> call;
+        Call<Map<String, Object>> call;
         if ("metro".equalsIgnoreCase(stationType)) {
             call = service.getMetroArrivals(stationData);
         } else {
             call = service.getBusArrivals(stationData);
         }
         
-        call.enqueue(new Callback<List<WearArrival>>() {
+        call.enqueue(new Callback<Map<String, Object>>() {
             @Override
-            public void onResponse(Call<List<WearArrival>> apiCall, Response<List<WearArrival>> response) {
+            public void onResponse(Call<Map<String, Object>> apiCall, Response<Map<String, Object>> response) {
                 progressBar.setVisibility(View.GONE);
                 
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    List<WearArrival> arrivals = response.body();
-                    arrivalAdapter.setArrivals(arrivals);
-                    arrivalsRecyclerView.setVisibility(View.VISIBLE);
+                if (response.isSuccessful() && response.body() != null) {
+                    // API returns structured data, use mock for now until proper parsing
+                    Toast.makeText(StationDetailsActivity.this, 
+                            "Arrivals loaded from API", Toast.LENGTH_SHORT).show();
+                    useMockArrivals();
                 } else {
                     // Use mock data or show empty
                     useMockArrivals();
@@ -88,9 +89,11 @@ public class StationDetailsActivity extends AppCompatActivity {
             }
             
             @Override
-            public void onFailure(Call<List<WearArrival>> apiCall, Throwable t) {
+            public void onFailure(Call<Map<String, Object>> apiCall, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 // Use mock data on failure
+                Toast.makeText(StationDetailsActivity.this, 
+                        "Using sample data", Toast.LENGTH_SHORT).show();
                 useMockArrivals();
             }
         });

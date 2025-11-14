@@ -20,13 +20,13 @@ public interface WearTransportService {
      * Get metro arrivals for a station
      */
     @POST("metro_arrivals")
-    Call<List<WearArrival>> getMetroArrivals(@Body Map<String, String> stationData);
+    Call<Map<String, Object>> getMetroArrivals(@Body Map<String, String> stationData);
     
     /**
      * Get bus arrivals for a station
      */
     @POST("bus_arrivals")
-    Call<List<WearArrival>> getBusArrivals(@Body Map<String, String> stationData);
+    Call<Map<String, Object>> getBusArrivals(@Body Map<String, String> stationData);
     
     /**
      * Get route from coordinates

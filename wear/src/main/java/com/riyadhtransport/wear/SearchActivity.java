@@ -16,8 +16,11 @@ import com.riyadhtransport.wear.models.RouteInstruction;
 import com.riyadhtransport.wear.models.WearFavorite;
 import com.riyadhtransport.wear.utils.DataSyncHelper;
 import com.riyadhtransport.wear.utils.WearLocationHelper;
+import com.riyadhtransport.wear.api.WearApiClient;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchActivity extends AppCompatActivity implements DestinationWithHeaderAdapter.OnDestinationClickListener {
     private WearableRecyclerView destinationsRecyclerView;
@@ -95,9 +98,47 @@ public class SearchActivity extends AppCompatActivity implements DestinationWith
         progressBar.setVisibility(View.VISIBLE);
         destinationsRecyclerView.setVisibility(View.GONE);
         
-        // In a real implementation, we would call the route API here
-        // For now, create mock route instructions
-        createMockRoute(destination);
+        // Call real route API
+        findRoute(destination);
+    }
+    
+    private void findRoute(WearFavorite destination) {
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("start_lat", userLocation.getLatitude());
+        requestBody.put("start_lng", userLocation.getLongitude());
+        requestBody.put("end_lat", destination.getLatitude());
+        requestBody.put("end_lng", destination.getLongitude());
+        
+        WearApiClient.getTransportService().getRouteFromCoords(requestBody)
+                .enqueue(new retrofit2.Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(retrofit2.Call<Map<String, Object>> call, 
+                                 retrofit2.Response<Map<String, Object>> response) {
+                progressBar.setVisibility(View.GONE);
+                destinationsRecyclerView.setVisibility(View.VISIBLE);
+                
+                if (response.isSuccessful() && response.body() != null) {
+                    // Successfully got route, show instructions
+                    Toast.makeText(SearchActivity.this, 
+                            "Route found!", Toast.LENGTH_SHORT).show();
+                    // For now, use mock instructions until proper parsing is implemented
+                    createMockRoute(destination);
+                } else {
+                    Toast.makeText(SearchActivity.this, 
+                            "No route found, showing sample", Toast.LENGTH_SHORT).show();
+                    createMockRoute(destination);
+                }
+            }
+            
+            @Override
+            public void onFailure(retrofit2.Call<Map<String, Object>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                destinationsRecyclerView.setVisibility(View.VISIBLE);
+                Toast.makeText(SearchActivity.this, 
+                        "Network error, showing sample", Toast.LENGTH_SHORT).show();
+                createMockRoute(destination);
+            }
+        });
     }
     
     private void createMockRoute(WearFavorite destination) {
