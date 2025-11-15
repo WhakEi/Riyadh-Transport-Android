@@ -10,91 +10,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Helper class for syncing data between phone and watch
- * Uses SharedPreferences as a simple storage mechanism
- * In production, this would use Wearable Data Layer API
+ * This class now reads Favorites and History from SharedPreferences,
+ * which are saved by the DataLayerListenerService.
  */
 public class DataSyncHelper {
-    private static final String PREFS_NAME = "WearDataSync";
-    private static final String KEY_FAVORITES = "favorites";
-    private static final String KEY_SEARCH_HISTORY = "search_history";
-    
-    private Context context;
-    private SharedPreferences prefs;
-    private Gson gson;
-    
+
+    // Constants for SharedPreferences
+    public static final String PREFS_NAME = "RiyadhTransportPrefs";
+    public static final String FAVORITES_KEY = "favorites_json";
+    public static final String HISTORY_KEY = "history_json";
+
+    // Constants for Data Layer paths (must match mobile app)
+    public static final String FAVORITES_PATH = "/favorites";
+    public static final String HISTORY_PATH = "/history";
+
+    private final SharedPreferences prefs;
+    private final Gson gson;
+
     public DataSyncHelper(Context context) {
-        this.context = context;
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.gson = new Gson();
     }
-    
+
     /**
-     * Get favorites synced from phone
+     * Reads the list of favorites from SharedPreferences.
+     * @return A list of WearFavorite objects, or an empty list if none are saved.
      */
     public List<WearFavorite> getFavorites() {
-        String json = prefs.getString(KEY_FAVORITES, null);
+        String json = prefs.getString(FAVORITES_KEY, null);
         if (json == null) {
-            return new ArrayList<>();
+            return new ArrayList<>(); // Return empty list, not null
         }
-        
-        try {
-            Type listType = new TypeToken<ArrayList<WearFavorite>>(){}.getType();
-            List<WearFavorite> favorites = gson.fromJson(json, listType);
-            return favorites != null ? favorites : new ArrayList<>();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+
+        // Use Gson to turn the JSON string back into a List
+        Type listType = new TypeToken<ArrayList<WearFavorite>>() {}.getType();
+        return gson.fromJson(json, listType);
     }
-    
+
     /**
-     * Get search history synced from phone
+     * Reads the list of search history from SharedPreferences.
+     * @return A list of WearFavorite objects, or an empty list if none are saved.
      */
     public List<WearFavorite> getSearchHistory() {
-        String json = prefs.getString(KEY_SEARCH_HISTORY, null);
+        String json = prefs.getString(HISTORY_KEY, null);
         if (json == null) {
-            return new ArrayList<>();
+            return new ArrayList<>(); // Return empty list, not null
         }
-        
-        try {
-            Type listType = new TypeToken<ArrayList<WearFavorite>>(){}.getType();
-            List<WearFavorite> history = gson.fromJson(json, listType);
-            return history != null ? history : new ArrayList<>();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+
+        // Use Gson to turn the JSON string back into a List
+        Type listType = new TypeToken<ArrayList<WearFavorite>>() {}.getType();
+        return gson.fromJson(json, listType);
     }
-    
+
     /**
-     * Save favorites (for testing purposes)
-     */
-    public void saveFavorites(List<WearFavorite> favorites) {
-        String json = gson.toJson(favorites);
-        prefs.edit().putString(KEY_FAVORITES, json).apply();
-    }
-    
-    /**
-     * Save search history (for testing purposes)
-     */
-    public void saveSearchHistory(List<WearFavorite> history) {
-        String json = gson.toJson(history);
-        prefs.edit().putString(KEY_SEARCH_HISTORY, json).apply();
-    }
-    
-    /**
-     * Initialize with sample data for testing
+     * This method is no longer needed, but is kept empty to avoid
+     * breaking any existing calls. The sample data is gone.
      */
     public void initializeSampleData() {
-        List<WearFavorite> favorites = new ArrayList<>();
-        favorites.add(new WearFavorite("King Abdullah Financial District", 24.7661, 46.6373, "location"));
-        favorites.add(new WearFavorite("Olaya Metro Station", 24.6952, 46.6851, "station"));
-        favorites.add(new WearFavorite("Riyadh Park Mall", 24.7561, 46.6451, "location"));
-        saveFavorites(favorites);
-        
-        List<WearFavorite> history = new ArrayList<>();
-        history.add(new WearFavorite("King Khalid International Airport", 24.9575, 46.6989, "location"));
-        history.add(new WearFavorite("Riyadh Gallery Mall", 24.7537, 46.6753, "location"));
-        history.add(new WearFavorite("King Fahd Stadium", 24.6771, 46.7084, "location"));
-        saveSearchHistory(history);
+        // This method is now intentionally blank.
     }
 }
