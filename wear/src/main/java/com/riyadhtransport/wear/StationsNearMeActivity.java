@@ -77,11 +77,36 @@ public class StationsNearMeActivity extends AppCompatActivity implements SensorE
 
             @Override
             public void onClusterClick(List<WearStation> cluster, float clusterBearing) {
-                // Zoom into cluster direction
-                compassView.zoomTowardDirection(clusterBearing);
-                btnResetZoom.setVisibility(View.VISIBLE);
+                // Show dialog with list of clustered stations
+                showClusterDialog(cluster);
             }
         });
+    }
+    
+    private void showClusterDialog(List<WearStation> stations) {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_cluster_stations);
+        
+        androidx.wear.widget.WearableRecyclerView recyclerView = 
+                dialog.findViewById(R.id.clusterStationsRecyclerView);
+        androidx.wear.widget.WearableLinearLayoutManager layoutManager = 
+                new androidx.wear.widget.WearableLinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setEdgeItemsCenteringEnabled(true);
+        
+        com.riyadhtransport.wear.adapters.ClusterStationAdapter adapter = 
+                new com.riyadhtransport.wear.adapters.ClusterStationAdapter(station -> {
+            dialog.dismiss();
+            Intent intent = new Intent(StationsNearMeActivity.this, StationDetailsActivity.class);
+            intent.putExtra("station_name", station.getDisplayName());
+            intent.putExtra("station_type", station.getType());
+            startActivity(intent);
+        });
+        
+        adapter.setStations(stations);
+        recyclerView.setAdapter(adapter);
+        
+        dialog.show();
     }
 
     private void loadNearbyStations() {

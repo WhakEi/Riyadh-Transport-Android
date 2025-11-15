@@ -13,10 +13,8 @@ import java.util.List;
 
 public class RouteInstructionsActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
-    private TextView pageIndicator;
 
     private RouteInstructionAdapter adapter;
-    // private int totalDuration; // No longer needed as class field
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +27,6 @@ public class RouteInstructionsActivity extends AppCompatActivity {
 
     private void initViews() {
         viewPager = findViewById(R.id.viewPager);
-        pageIndicator = findViewById(R.id.pageIndicator);
 
         adapter = new RouteInstructionAdapter(() -> {
             // Return to main menu
@@ -37,13 +34,6 @@ public class RouteInstructionsActivity extends AppCompatActivity {
         });
 
         viewPager.setAdapter(adapter);
-        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                // This call is now valid
-                updatePageIndicator(position);
-            }
-        });
     }
 
     private void loadInstructions() {
@@ -60,16 +50,5 @@ public class RouteInstructionsActivity extends AppCompatActivity {
         }
 
         adapter.setInstructions(instructions, totalDurationFromIntent);
-        // This call is now valid
-        updatePageIndicator(0);
-    }
-
-    /**
-     * <-- FIX 2: Added this method back in
-     * Updates the page indicator text (e.g., "1 / 3")
-     */
-    private void updatePageIndicator(int position) {
-        int totalPages = adapter.getItemCount();
-        pageIndicator.setText((position + 1) + " / " + totalPages);
     }
 }

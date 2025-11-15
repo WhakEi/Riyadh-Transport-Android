@@ -4,9 +4,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.wear.widget.CurvedTextView;
 import com.riyadhtransport.wear.R;
 import com.riyadhtransport.wear.models.RouteInstruction;
 import java.util.ArrayList;
@@ -69,8 +71,8 @@ public class RouteInstructionAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
     
     class InstructionViewHolder extends RecyclerView.ViewHolder {
-        TextView stepNumberText;
-        TextView instructionIcon;
+        CurvedTextView stepNumberText;
+        ImageView instructionIcon;
         TextView instructionText;
         TextView detailsText;
         TextView durationText;
@@ -90,24 +92,28 @@ public class RouteInstructionAdapter extends RecyclerView.Adapter<RecyclerView.V
             detailsText.setText(instruction.getDetails());
             durationText.setText(instruction.getDuration() + " min");
             
-            // Set icon based on type
+            // Set Material You icon based on type
             if (instruction.isWalk()) {
-                instructionIcon.setText("🚶");
+                instructionIcon.setImageResource(R.drawable.ic_walk);
             } else if (instruction.isMetro()) {
-                instructionIcon.setText("🚇");
+                instructionIcon.setImageResource(R.drawable.ic_metro);
             } else if (instruction.isBus()) {
-                instructionIcon.setText("🚌");
+                instructionIcon.setImageResource(R.drawable.ic_bus);
             }
         }
     }
     
     class SummaryViewHolder extends RecyclerView.ViewHolder {
         TextView totalDurationText;
+        TextView transitsText;
+        TextView walkingTimeText;
         Button btnReturnToMenu;
         
         SummaryViewHolder(View itemView) {
             super(itemView);
             totalDurationText = itemView.findViewById(R.id.totalDurationText);
+            transitsText = itemView.findViewById(R.id.transitsText);
+            walkingTimeText = itemView.findViewById(R.id.walkingTimeText);
             btnReturnToMenu = itemView.findViewById(R.id.btnReturnToMenu);
             
             btnReturnToMenu.setOnClickListener(v -> {
@@ -119,6 +125,20 @@ public class RouteInstructionAdapter extends RecyclerView.Adapter<RecyclerView.V
         
         void bind(int duration) {
             totalDurationText.setText(duration + " min");
+            
+            // Calculate transit count and walking time
+            int transitCount = 0;
+            int walkingTime = 0;
+            for (RouteInstruction instruction : instructions) {
+                if (instruction.isWalk()) {
+                    walkingTime += instruction.getDuration();
+                } else {
+                    transitCount++;
+                }
+            }
+            
+            transitsText.setText(transitCount + " transit" + (transitCount != 1 ? "s" : ""));
+            walkingTimeText.setText(walkingTime + " min walking");
         }
     }
 }
