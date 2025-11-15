@@ -15,8 +15,10 @@ import com.riyadhtransport.wear.adapters.DestinationWithHeaderAdapter;
 import com.riyadhtransport.wear.models.RouteInstruction;
 import com.riyadhtransport.wear.models.WearFavorite;
 import com.riyadhtransport.wear.utils.DataSyncHelper;
+import com.riyadhtransport.wear.utils.ScreenUtils;
 import com.riyadhtransport.wear.utils.WearLocationHelper;
 import com.riyadhtransport.wear.api.WearApiClient;
+import android.util.TypedValue;
 import java.io.Serializable; // Import this
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +59,21 @@ public class SearchActivity extends AppCompatActivity implements DestinationWith
         destinationsRecyclerView.setLayoutManager(new WearableLinearLayoutManager(this));
         destinationsRecyclerView.setEdgeItemsCenteringEnabled(true);
         destinationsRecyclerView.setAdapter(adapter);
+        
+        // Scale content based on screen size
+        scaleContentForScreen();
+    }
+    
+    private void scaleContentForScreen() {
+        TextView titleText = findViewById(R.id.titleText);
+        
+        // Get scaled sizes
+        float titleSize = ScreenUtils.getScaledTextSize(this, 16f);
+        float emptyTextSize = ScreenUtils.getScaledTextSize(this, 14f);
+        
+        // Apply scaled sizes
+        titleText.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize);
+        emptyText.setTextSize(TypedValue.COMPLEX_UNIT_SP, emptyTextSize);
     }
 
     private void loadData() {

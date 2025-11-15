@@ -12,6 +12,8 @@ import com.riyadhtransport.wear.adapters.ArrivalAdapter;
 import com.riyadhtransport.wear.api.WearApiClient;
 import com.riyadhtransport.wear.api.WearTransportService;
 import com.riyadhtransport.wear.models.WearArrival;
+import com.riyadhtransport.wear.utils.ScreenUtils;
+import android.util.TypedValue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +56,19 @@ public class StationDetailsActivity extends AppCompatActivity {
         arrivalsRecyclerView.setLayoutManager(new WearableLinearLayoutManager(this));
         arrivalsRecyclerView.setEdgeItemsCenteringEnabled(true);
         arrivalsRecyclerView.setAdapter(arrivalAdapter);
+        
+        // Scale content based on screen size
+        scaleContentForScreen();
+    }
+    
+    private void scaleContentForScreen() {
+        // Get scaled sizes
+        float stationNameSize = ScreenUtils.getScaledTextSize(this, 16f);
+        float emptyTextSize = ScreenUtils.getScaledTextSize(this, 14f);
+        
+        // Apply scaled sizes
+        stationNameText.setTextSize(TypedValue.COMPLEX_UNIT_SP, stationNameSize);
+        emptyText.setTextSize(TypedValue.COMPLEX_UNIT_SP, emptyTextSize);
     }
 
     private void loadArrivals() {

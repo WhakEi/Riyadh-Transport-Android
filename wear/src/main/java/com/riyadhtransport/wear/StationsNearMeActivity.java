@@ -17,8 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.riyadhtransport.wear.api.WearApiClient;
 import com.riyadhtransport.wear.api.WearTransportService;
 import com.riyadhtransport.wear.models.WearStation;
+import com.riyadhtransport.wear.utils.ScreenUtils;
 import com.riyadhtransport.wear.utils.WearLocationHelper;
 import com.riyadhtransport.wear.views.CompassView;
+import android.util.TypedValue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,19 @@ public class StationsNearMeActivity extends AppCompatActivity implements SensorE
             compassView.resetZoom();
             btnResetZoom.setVisibility(View.GONE);
         });
+        
+        // Scale content based on screen size
+        scaleContentForScreen();
+    }
+    
+    private void scaleContentForScreen() {
+        // Get scaled sizes
+        float statusTextSize = ScreenUtils.getScaledTextSize(this, 14f);
+        float buttonTextSize = ScreenUtils.getScaledTextSize(this, 12f);
+        
+        // Apply scaled sizes
+        statusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, statusTextSize);
+        btnResetZoom.setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
     }
 
     private void setupCompassView() {

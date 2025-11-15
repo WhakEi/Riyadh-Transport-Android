@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.riyadhtransport.wear.utils.DataSyncHelper;
+import com.riyadhtransport.wear.utils.ScreenUtils;
 import com.riyadhtransport.wear.utils.WearLocationHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,6 +47,32 @@ public class MainActivity extends AppCompatActivity {
     private void initViews() {
         btnSearch = findViewById(R.id.btnSearch);
         btnStationsNearMe = findViewById(R.id.btnStationsNearMe);
+        
+        // Scale content based on screen size
+        scaleContentForScreen();
+    }
+    
+    private void scaleContentForScreen() {
+        TextView titleText = findViewById(R.id.titleText);
+        
+        // Get scaled sizes
+        float titleSize = ScreenUtils.getScaledTextSize(this, 16f);
+        float buttonTextSize = ScreenUtils.getScaledTextSize(this, 13f);
+        int buttonHeight = ScreenUtils.getScaledDimension(this, 40);
+        
+        // Apply scaled sizes
+        titleText.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleSize);
+        btnSearch.setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
+        btnStationsNearMe.setTextSize(TypedValue.COMPLEX_UNIT_SP, buttonTextSize);
+        
+        // Scale button heights
+        ViewGroup.LayoutParams searchParams = btnSearch.getLayoutParams();
+        searchParams.height = ScreenUtils.dpToPx(this, buttonHeight);
+        btnSearch.setLayoutParams(searchParams);
+        
+        ViewGroup.LayoutParams nearMeParams = btnStationsNearMe.getLayoutParams();
+        nearMeParams.height = ScreenUtils.dpToPx(this, buttonHeight);
+        btnStationsNearMe.setLayoutParams(nearMeParams);
     }
 
     private void setupListeners() {
