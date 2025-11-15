@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WearApiClient {
     // Update this URL to match your backend server
-    private static final String BASE_URL = "https://riyadhtransport.tech/";
+    private static final String BASE_URL = "https://mainserver.inirl.net:5002";
     
     private static Retrofit retrofit = null;
     
