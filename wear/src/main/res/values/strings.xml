@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Riyadh Transport</string>
+    <string name="search">Search</string>
+    <string name="stations_near_me">Stations Near Me</string>
+    <string name="station_details">Station Details</string>
+    <string name="route_instructions">Route</string>
+    <string name="favorites">Favorites</string>
+    <string name="search_history">Recent Searches</string>
+    <string name="no_favorites">No favorites yet</string>
+    <string name="no_history">No recent searches</string>
+    <string name="select_destination">Select Destination</string>
+    <string name="finding_route">Finding route...</string>
+    <string name="loading_stations">Loading nearby stations...</string>
+    <string name="loading_arrivals">Loading arrivals...</string>
+    <string name="no_stations_nearby">No stations nearby</string>
+    <string name="no_arrivals">No upcoming arrivals</string>
+    <string name="gps_error">GPS Error</string>
+    <string name="gps_unavailable">No GPS available. Please ensure GPS is enabled on your watch or phone.</string>
+    <string name="location_permission_required">Location permission is required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="using_watch_gps">Using watch GPS</string>
+    <string name="using_phone_gps">Using phone GPS</string>
+    <string name="return_to_menu">Return to Menu</string>
+    <string name="route_summary">Route Summary</string>
+    <string name="total_duration">Total: %d min</string>
+    <string name="walk_instruction">Walk %d min</string>
+    <string name="metro_instruction">Metro: %s</string>
+    <string name="bus_instruction">Bus: %s</string>
+    <string name="zoom_out">Reset View</string>
+    <string name="min_short">min</string>
+    <string name="arrivals_title">Next Arrivals</string>
+</resources>

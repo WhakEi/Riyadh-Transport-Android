@@ -6,8 +6,10 @@ import android.content.res.Configuration;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +17,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -31,6 +32,7 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import java.util.Locale;
+import android.content.res.Resources;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -55,10 +57,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         // Load and apply saved language preference before anything else
         loadSavedLanguage();
-        
+
         // Initialize ApiClient with context AFTER loading language preference
         // This ensures the Arabic locale is properly detected
         com.riyadhtransport.api.ApiClient.init(this);
@@ -102,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup FAB for settings
         fabSettings.setOnClickListener(v -> showSettingsDialog());
-        
+
         // Setup FAB for favorites
         fabFavorites.setOnClickListener(v -> openFavorites());
 
@@ -110,27 +112,27 @@ public class MainActivity extends AppCompatActivity {
         if (!LocationHelper.hasLocationPermission(this)) {
             LocationHelper.requestLocationPermission(this);
         }
-        
+
         // Handle intent extras (from favorites)
         handleIntent(getIntent());
     }
-    
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         handleIntent(intent);
     }
-    
+
     private void handleIntent(Intent intent) {
         if (intent.getBooleanExtra("set_destination", false)) {
             String name = intent.getStringExtra("destination_name");
             double lat = intent.getDoubleExtra("destination_lat", 0);
             double lng = intent.getDoubleExtra("destination_lng", 0);
-            
+
             // Switch to route tab
             viewPager.setCurrentItem(0);
-            
+
             // Set destination in route fragment
             viewPager.post(() -> {
                 RouteFragment routeFragment = getRouteFragment();
@@ -140,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-    
+
     private void openFavorites() {
         Intent intent = new Intent(this, FavoritesActivity.class);
         startActivity(intent);
@@ -149,15 +151,15 @@ public class MainActivity extends AppCompatActivity {
     private void setupMap() {
         // Get current language
         String language = getCurrentLanguage();
-        
+
         // Check if dark mode is enabled
         int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
         boolean isDarkMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
-        
+
         // Use dark map style if dark mode is enabled
         String mapStyle = isDarkMode ? "streets-v2-dark" : "streets-v2";
 
-        // Create MapTiler tile source with language and dark mode support
+        // Create MapTiler tile source with language support
         OnlineTileSourceBase mapTilerSource = new XYTileSource(
                 "MapTiler",
                 0, 20, 256, ".png",
@@ -360,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
                 changeLanguage(newLang);
             }
         });
-        
+
         // Handle clear cache button
         clearCacheButton.setOnClickListener(v -> {
             com.riyadhtransport.fragments.LinesFragment.clearCache(this);
@@ -374,10 +376,10 @@ public class MainActivity extends AppCompatActivity {
     private void loadSavedLanguage() {
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         String languageCode = prefs.getString("language", null);
-        
+
         android.util.Log.i("RiyadhTransport", "MainActivity.loadSavedLanguage() called");
         android.util.Log.i("RiyadhTransport", "Saved language code: " + (languageCode != null ? languageCode : "NULL (using device default)"));
-        
+
         if (languageCode != null) {
             Locale locale = new Locale(languageCode);
             Locale.setDefault(locale);
@@ -385,45 +387,45 @@ public class MainActivity extends AppCompatActivity {
             // Update both activity AND application context resources
             Configuration config = new Configuration();
             config.setLocale(locale);
-            
+
             // Update activity resources
             getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-            
+
             // Update application context resources (critical for ApiClient)
-            getApplicationContext().getResources().updateConfiguration(config, 
+            getApplicationContext().getResources().updateConfiguration(config,
                 getApplicationContext().getResources().getDisplayMetrics());
-            
+
             android.util.Log.i("RiyadhTransport", "Applied locale: " + locale);
             android.util.Log.i("RiyadhTransport", "Locale.getDefault(): " + Locale.getDefault());
             android.util.Log.i("RiyadhTransport", "Activity context locale: " + getResources().getConfiguration().getLocales().get(0));
             android.util.Log.i("RiyadhTransport", "App context locale: " + getApplicationContext().getResources().getConfiguration().getLocales().get(0));
         }
     }
-    
+
     private void changeLanguage(String languageCode) {
         // Save language preference
         SharedPreferences prefs = getSharedPreferences("AppSettings", MODE_PRIVATE);
         prefs.edit().putString("language", languageCode).apply();
-        
+
         android.util.Log.i("RiyadhTransport", "changeLanguage: " + languageCode);
-        
+
         Locale locale = new Locale(languageCode);
         Locale.setDefault(locale);
 
         // Update both activity AND application context resources
         Configuration config = new Configuration();
         config.setLocale(locale);
-        
+
         // Update activity resources
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-        
+
         // Update application context resources (critical for ApiClient)
-        getApplicationContext().getResources().updateConfiguration(config, 
+        getApplicationContext().getResources().updateConfiguration(config,
             getApplicationContext().getResources().getDisplayMetrics());
 
         // Re-initialize API client to pick up language changes for /ar/ endpoints
         com.riyadhtransport.api.ApiClient.init(this);
-        
+
         // Restart activity to apply changes
         recreate();
     }

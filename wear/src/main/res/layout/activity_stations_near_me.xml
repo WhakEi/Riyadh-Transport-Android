@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="0dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:boxedEdges="all">
+
+        <com.riyadhtransport.wear.views.CompassView
+            android:id="@+id/compassView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <Button
+            android:id="@+id/btnResetZoom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zoom_out"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:padding="6dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/loading_stations"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:background="@color/surface"
+            android:padding="8dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="16dp" />
+
+    </FrameLayout>
+
+</androidx.wear.widget.BoxInsetLayout>
